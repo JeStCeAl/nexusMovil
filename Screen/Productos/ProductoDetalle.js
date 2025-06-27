@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text, Image, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Image, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const ProductoDetalle = ({ route }) => {
+const ProductoDetalle = ({ route, navigation }) => {
   const { producto } = route.params;
 
   return (
@@ -30,6 +30,14 @@ const ProductoDetalle = ({ route }) => {
         ]}>
           {producto.disponible ? 'Disponible' : 'Agotado'}
         </Text>
+
+        <TouchableOpacity
+  style={styles.buyButton}
+  onPress={() => navigation.navigate('Carro', { producto })}
+  disabled={!producto.disponible}
+>
+          <Text style={styles.buyButtonText}>Comprar</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -95,6 +103,19 @@ const styles = StyleSheet.create({
   },
   notAvailable: {
     color: 'red',
+  },
+  buyButton: {
+    backgroundColor: '#8b4513',
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 20,
+    alignItems: 'center',
+    opacity: 1,
+  },
+  buyButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
   },
 });
 

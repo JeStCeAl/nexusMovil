@@ -9,6 +9,7 @@ const NavegacionPrincipal = () => {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="ProductoStack" component={ProductoStack} />
     </Stack.Navigator>
+    
   );
 };
 

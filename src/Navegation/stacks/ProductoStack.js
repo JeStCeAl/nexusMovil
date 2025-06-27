@@ -1,7 +1,7 @@
-// stacks/ProductoStack.js
 import { createStackNavigator } from '@react-navigation/stack';
 import ListarProductsScreen from '../../../Screen/Productos/ListarProductosScreen';
 import ProductoDetalle from '../../../Screen/Productos/ProductoDetalle';
+import Carro from '../../../Screen/Carro/Carro'; 
 
 const Stack = createStackNavigator();
 
@@ -17,6 +17,10 @@ const ProductoStack = () => {
         name="ProductoDetalle" 
         component={ProductoDetalle}
         options={({ route }) => ({ title: route.params.producto.nombre })}
+      />
+      <Stack.Screen 
+        name="Carro" 
+        component={Carro} 
       />
     </Stack.Navigator>
   );
