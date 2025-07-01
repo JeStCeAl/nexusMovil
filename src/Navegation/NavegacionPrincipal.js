@@ -1,15 +1,41 @@
-// stacks/NavegacionPrincipal.js
-import { createStackNavigator } from '@react-navigation/stack';
-import ProductoStack from './stacks/ProductoStack';
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { Ionicons } from "@expo/vector-icons";
+import ProductoStack from "./stacks/ProductoStack"; // Asegúrate que el archivo exista
+import CarroStack from "./stacks/CarroStack";      // Asegúrate que el archivo exista
 
-const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
 
 const NavegacionPrincipal = () => {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="ProductoStack" component={ProductoStack} />
-    </Stack.Navigator>
-    
+    <Tab.Navigator 
+      screenOptions={{ 
+        headerShown: false,
+        tabBarActiveTintColor: 'blue',    // Color personalizado
+        tabBarInactiveTintColor: 'gray',  // Color personalizado
+      }}
+    >
+      <Tab.Screen
+        name="productos"  // Cambiado a minúsculas por convención
+        component={ProductoStack}
+        options={{
+          tabBarLabel: "Productos",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="home" size={size} color={color} />
+          ),
+        }}
+      />
+
+      <Tab.Screen
+        name="carrito"  // Cambiado a minúsculas por convención
+        component={CarroStack}
+        options={{
+          tabBarLabel: "Carrito",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="cart" size={size} color={color} />
+          ),
+        }}
+      />
+    </Tab.Navigator>
   );
 };
 
