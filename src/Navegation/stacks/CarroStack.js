@@ -1,6 +1,6 @@
 // stacks/CarroStack.js
-import { createStackNavigator } from '@react-navigation/stack';
-import Carro from '../../../Screen/Carro/Carro'; // Asegúrate de tener esta pantalla
+import { createStackNavigator } from "@react-navigation/stack";
+import Carro from "../../../Screen/Carro/Carro"; // Asegúrate de tener esta pantalla
 
 const Stack = createStackNavigator();
 
