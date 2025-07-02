@@ -1,7 +1,8 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, AntDesign } from "@expo/vector-icons";
 import ProductoStack from "./stacks/ProductoStack"; // Asegúrate que el archivo exista
-import CarroStack from "./stacks/CarroStack";      // Asegúrate que el archivo exista
+import CarroStack from "./stacks/CarroStack"; 
+import ConfiguracionStack from "./stacks/ConfiguracionStack"     // Asegúrate que el archivo exista
 
 const Tab = createBottomTabNavigator();
 
@@ -32,6 +33,15 @@ const NavegacionPrincipal = () => {
           tabBarLabel: "Carrito",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="cart" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Configuración"
+        component={ConfiguracionStack}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <AntDesign name="setting" size={size} color={color} />
           ),
         }}
       />
