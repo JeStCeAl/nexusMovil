@@ -2,10 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet, Switch, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const ConfiguracionScreen = () => {
-
-
-
+// Recibe navigation como prop
+const ConfiguracionScreen = ({ navigation }) => {
   return (
     <ScrollView style={[styles.container]}>
       <Text style={[styles.header]}>Configuración</Text>
@@ -13,7 +11,10 @@ const ConfiguracionScreen = () => {
       {/* Sección de Cuenta */}
       <View style={styles.section}>
         <Text style={[styles.sectionTitle]}>Cuenta</Text>
-        <TouchableOpacity style={styles.option}>
+        <TouchableOpacity
+          style={styles.option}
+          onPress={() => navigation.navigate('Perfil')} // Navega a la vista Perfil
+        >
           <Ionicons name="person-outline" size={24} color={"#333"} />
           <Text style={[styles.optionText]}>Editar perfil</Text>
           <Ionicons name="chevron-forward" size={20} color="#999" />
@@ -29,7 +30,6 @@ const ConfiguracionScreen = () => {
           <Ionicons name="chevron-forward" size={20} color="#999" />
         </TouchableOpacity>
       </View>
-      
       
       {/* Sección de Joyería */}
       <View style={styles.section}>

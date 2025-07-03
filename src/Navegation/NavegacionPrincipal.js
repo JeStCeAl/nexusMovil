@@ -3,6 +3,8 @@ import { Ionicons, AntDesign } from "@expo/vector-icons";
 import ProductoStack from "./stacks/ProductoStack"; // Asegúrate que el archivo exista
 import CarroStack from "./stacks/CarroStack"; 
 import ConfiguracionStack from "./stacks/ConfiguracionStack"     // Asegúrate que el archivo exista
+import PerfilStack from "./stacks/PerfilStack";
+
 
 const Tab = createBottomTabNavigator();
 
@@ -45,6 +47,7 @@ const NavegacionPrincipal = () => {
           ),
         }}
       />
+
     </Tab.Navigator>
   );
 };
