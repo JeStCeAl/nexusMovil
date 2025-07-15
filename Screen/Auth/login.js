@@ -13,6 +13,8 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FontAwesome } from '@expo/vector-icons';
+import { loginUser } from "../../src/Services/AuthService"; // Importa la función de login desde tu servicio
+import { MaterialIcons } from "@expo/vector-icons";
 
 const { width, height } = Dimensions.get('window');
 
@@ -21,19 +23,46 @@ const LoginScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [errors , setErrors] = useState({
+    email: '',
+    password: ''
+  });
 
-  const handleLogin = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      Alert.alert('¡Inicio de sesión exitoso!');
-      setEmail('');
-      setPassword('');
-    }, 1200);
+
+  const validateFields = () => {
+    const newErrors = {
+      email: !email ? "El email es requerido" : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? "Email inválido" : "",
+      password: !password ? "La contraseña es requerida" : ""
+    };
+    
+    setErrors(newErrors);
+    return !Object.values(newErrors).some(error => error !== "");
   };
 
-  const toggleShowPassword = () => {
-    setShowPassword(!showPassword);
+  const handleLogin = async () => {
+    if (!validateFields()) return;
+    
+    setLoading(true);
+
+    try {
+      const result = await loginUser(email, password);
+      if (result.success) {
+        Alert.alert("Éxito", "Inicio de sesión exitoso");
+      } else {
+        Alert.alert(
+          "Error de Login",
+          result.message || "Credenciales incorrectas. Por favor, inténtalo de nuevo."
+        );
+      }
+    } catch (error) {
+      console.error("Error inesperado al iniciar sesión:", error);
+      Alert.alert(
+        "Error",
+        "Ocurrió un error inesperado. Por favor, inténtalo de nuevo más tarde."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -57,7 +86,7 @@ const LoginScreen = ({ navigation }) => {
         <View style={styles.tabs}>
           <TouchableOpacity 
             style={[styles.tab, styles.activeTab]}
-            onPress={() => navigation.navigate('Login')}
+            onPress={handleLogin}
           >
             <Text style={styles.tabText}>INGRESAR</Text>
           </TouchableOpacity>
@@ -95,12 +124,17 @@ const LoginScreen = ({ navigation }) => {
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
             />
-            <TouchableOpacity onPress={toggleShowPassword}>
-              <FontAwesome 
-                name={showPassword ? "eye-slash" : "eye"} 
-                style={styles.passwordIcon} 
-              />
-            </TouchableOpacity>
+            
+            <TouchableOpacity 
+                  style={styles.passwordToggle} 
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <MaterialIcons 
+                    name={showPassword ? "visibility" : "visibility-off"} 
+                    size={20} 
+                    color="#7f8c8d" 
+                  />
+                </TouchableOpacity>
           </View>
           
           <TouchableOpacity 
@@ -120,17 +154,7 @@ const LoginScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.socialLogin}>
-            <TouchableOpacity style={[styles.socialBtn, styles.google]}>
-              <FontAwesome name="google" style={styles.socialIcon} />
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.socialBtn, styles.facebook]}>
-              <FontAwesome name="facebook" style={styles.socialIcon} />
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.socialBtn, styles.twitter]}>
-              <FontAwesome name="twitter" style={styles.socialIcon} />
-            </TouchableOpacity>
-          </View>
+         
         </View>
       </View>
     </ScrollView>

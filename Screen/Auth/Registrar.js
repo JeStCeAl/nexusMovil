@@ -6,61 +6,83 @@ import {
   TextInput, 
   TouchableOpacity, 
   ScrollView,
-  Alert
+  Alert,
+  ActivityIndicator
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
+import { registerUser } from "../../src/Services/AuthService"; // Importa la función de registro desde tu servicio
 
 const RegisterScreen = ({ navigation }) => {
-  const [registerData, setRegisterData] = useState({
-    name: '',
-    username: '',
-    email: '',
-    phone: '',
-    city: '',
-    password: '',
-  });
+  const [nombre, setNombre] = useState('');
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [telefono, setTelefono] = useState('');
+  const [direccion, setDireccion] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState({
+    nombre: "",
+    username: "",
+    email: "",
+    telefono: "",
+    direccion: "",
+    password: ""
+  });
 
-  const handleRegister = () => {
-    setLoading(true);
-    fetch('https://magicloops.dev/api/loop/da3de0ce-b613-4ae7-927c-1a02db30365e/run', {
-      method: 'POST',
-      body: JSON.stringify({
-        mode: "register",
-        ...registerData
-      }),
-      headers: { "Content-Type": "application/json" }
-    })
-      .then(r => r.json())
-      .then(data => {
-        setLoading(false);
-        if (data.status === "success") {
-          Alert.alert('¡Registro exitoso! Bienvenido a Nexus Ecommerce.');
-          setRegisterData({
-            name: '',
-            username: '',
-            email: '',
-            phone: '',
-            city: '',
-            password: '',
-          });
-          navigation.navigate('Login');
-        } else {
-          Alert.alert('Error en registro', data.message || 'Inténtalo nuevamente.');
-        }
-      })
-      .catch(err => {
-        setLoading(false);
-        Alert.alert('Error en registro', err.message);
-      });
+  const validateFields = () => {
+    const newErrors = {
+      nombre: !nombre ? "El nombre es requerido" : "",
+      username: !username ? "El nombre de usuario es requerido" : "",
+      email: !email ? "El email es requerido" : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? "Email inválido" : "",
+      telefono: !telefono ? "El teléfono es requerido" : "",
+      direccion: !direccion ? "La dirección es requerida" : "",
+      password: !password ? "La contraseña es requerida" : password.length < 8 ? "Mínimo 8 caracteres" : ""
+    };
+    
+    setErrors(newErrors);
+    return !Object.values(newErrors).some(error => error !== "");
   };
 
-  const handleChange = (name, value) => {
-    setRegisterData({
-      ...registerData,
-      [name]: value
-    });
+  const handleRegister = async () => {
+    if (!validateFields()) return;
+
+    setLoading(true);
+
+    try {
+      const result = await registerUser(nombre, direccion, telefono, username, email, password);
+      
+      if (result.success) {
+        Alert.alert("Éxito", "Registro de usuario exitoso", [
+          {
+            text: "OK",
+            onPress: () => navigation.navigate("Login")
+          },
+        ]);
+      } else {
+        // Manejo de errores del backend
+        if (result.error?.errors) {
+          const backendErrors = {};
+          Object.keys(result.error.errors).forEach(key => {
+            backendErrors[key] = result.error.errors[key].join(', ');
+          });
+          setErrors(prev => ({...prev, ...backendErrors}));
+        }
+        
+        Alert.alert(
+          "Error de Registro",
+          result.error?.message || "Ocurrió un error al registrar el usuario."
+        );
+      }
+    } catch (error) {
+      console.error("Error inesperado al registrar usuario:", error);
+      Alert.alert(
+        "Error",
+        "Ocurrió un error inesperado. Por favor, inténtalo de nuevo más tarde."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const toggleShowPassword = () => {
@@ -79,7 +101,6 @@ const RegisterScreen = ({ navigation }) => {
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.tab, styles.activeTab]}
-            onPress={() => navigation.navigate('Register')}
           >
             <Text style={styles.tabText}>REGISTRARSE</Text>
           </TouchableOpacity>
@@ -88,46 +109,127 @@ const RegisterScreen = ({ navigation }) => {
         <View style={styles.form}>
           <Text style={styles.formTitle}>Únete a la Élite</Text>
           
-          {[
-            { icon: 'user', name: 'name', placeholder: 'Nombre' },
-            { icon: 'user-circle', name: 'username', placeholder: 'Usuario' },
-            { icon: 'envelope', name: 'email', placeholder: 'Email', keyboardType: 'email-address' },
-            { icon: 'phone', name: 'phone', placeholder: 'Teléfono', keyboardType: 'phone-pad' },
-            { icon: 'map-marker', name: 'city', placeholder: 'Ciudad' },
-            { icon: 'lock', name: 'password', placeholder: 'Contraseña', secure: true },
-          ].map((field, index) => (
-            <View key={index} style={styles.inputContainer}>
-              <FontAwesome name={field.icon} style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder={field.placeholder}
-                placeholderTextColor="#c0c0c0"
-                value={registerData[field.name]}
-                onChangeText={(text) => handleChange(field.name, text)}
-                secureTextEntry={field.secure && !showPassword}
-                keyboardType={field.keyboardType || 'default'}
-                autoCapitalize={field.name === 'email' || field.name === 'username' ? 'none' : 'words'}
+          {/* Nombre */}
+          <View style={styles.inputContainer}>
+            <FontAwesome name="user" style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Nombre"
+              placeholderTextColor="#c0c0c0"
+              value={nombre}
+              onChangeText={(text) => {
+                setNombre(text);
+                setErrors(prev => ({...prev, nombre: ""}));
+              }}
+              autoCapitalize="words"
+            />
+          </View>
+          {errors.nombre ? <Text style={styles.errorText}>{errors.nombre}</Text> : null}
+
+          {/* Username */}
+          <View style={styles.inputContainer}>
+            <FontAwesome name="user-circle" style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Usuario"
+              placeholderTextColor="#c0c0c0"
+              value={username}
+              onChangeText={(text) => {
+                setUsername(text);
+                setErrors(prev => ({...prev, username: ""}));
+              }}
+              autoCapitalize="none"
+            />
+          </View>
+          {errors.username ? <Text style={styles.errorText}>{errors.username}</Text> : null}
+
+          {/* Email */}
+          <View style={styles.inputContainer}>
+            <FontAwesome name="envelope" style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              placeholderTextColor="#c0c0c0"
+              value={email}
+              onChangeText={(text) => {
+                setEmail(text);
+                setErrors(prev => ({...prev, email: ""}));
+              }}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+          </View>
+          {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
+
+          {/* Teléfono */}
+          <View style={styles.inputContainer}>
+            <FontAwesome name="phone" style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Teléfono"
+              placeholderTextColor="#c0c0c0"
+              value={telefono}
+              onChangeText={(text) => {
+                setTelefono(text);
+                setErrors(prev => ({...prev, telefono: ""}));
+              }}
+              keyboardType="phone-pad"
+            />
+          </View>
+          {errors.telefono ? <Text style={styles.errorText}>{errors.telefono}</Text> : null}
+
+          {/* Dirección */}
+          <View style={styles.inputContainer}>
+            <FontAwesome name="map-marker" style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Dirección"
+              placeholderTextColor="#c0c0c0"
+              value={direccion}
+              onChangeText={(text) => {
+                setDireccion(text);
+                setErrors(prev => ({...prev, direccion: ""}));
+              }}
+            />
+          </View>
+          {errors.direccion ? <Text style={styles.errorText}>{errors.direccion}</Text> : null}
+
+          {/* Contraseña */}
+          <View style={styles.inputContainer}>
+            <FontAwesome name="lock" style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Contraseña"
+              placeholderTextColor="#c0c0c0"
+              value={password}
+              onChangeText={(text) => {
+                setPassword(text);
+                setErrors(prev => ({...prev, password: ""}));
+              }}
+              secureTextEntry={!showPassword}
+            />
+            <TouchableOpacity onPress={toggleShowPassword}>
+              <FontAwesome 
+                name={showPassword ? "eye-slash" : "eye"} 
+                style={styles.passwordIcon} 
               />
-              {field.secure && (
-                <TouchableOpacity onPress={toggleShowPassword}>
-                  <FontAwesome 
-                    name={showPassword ? "eye-slash" : "eye"} 
-                    style={styles.passwordIcon} 
-                  />
-                </TouchableOpacity>
-              )}
-            </View>
-          ))}
+            </TouchableOpacity>
+          </View>
+          {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
           
-          <TouchableOpacity 
-            style={styles.submitButton}
-            onPress={handleRegister}
-            disabled={loading}
-          >
-            <Text style={styles.submitButtonText}>
-              {loading ? 'PROCESANDO...' : 'REGISTRARSE'}
-            </Text>
-          </TouchableOpacity>
+          {loading ? (
+            <ActivityIndicator size="large" color="#ffd700" style={styles.loader} />
+          ) : (
+            <TouchableOpacity 
+              style={styles.submitButton}
+              onPress={handleRegister}
+              disabled={loading}
+            >
+              <Text style={styles.submitButtonText}>
+                REGISTRARSE
+              </Text>
+            </TouchableOpacity>
+          )}
           
           <View style={styles.footer}>
             <Text style={styles.footerText}>¿Ya tienes una cuenta? </Text>
@@ -199,7 +301,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#2a2a2a',
     borderRadius: 5,
-    marginBottom: 15,
+    marginBottom: 5,
     paddingHorizontal: 15,
     borderWidth: 1.5,
     borderColor: '#2a2a2a',
@@ -254,6 +356,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#ffd700',
     textDecorationLine: 'underline',
+  },
+  errorText: {
+    color: '#ff6b6b',
+    fontSize: 12,
+    marginBottom: 10,
+    marginLeft: 10,
+    fontFamily: 'Spectral-Regular',
+  },
+  loader: {
+    marginVertical: 20,
   },
 });
 

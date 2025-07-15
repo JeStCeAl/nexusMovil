@@ -1,19 +1,27 @@
-import React from 'react';
-import { View, Text, StyleSheet, Switch, TouchableOpacity, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Switch,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { logoutUser } from "../../src/Services/AuthService";
 
 // Recibe navigation como prop
 const ConfiguracionScreen = ({ navigation }) => {
   return (
     <ScrollView style={[styles.container]}>
       <Text style={[styles.header]}>Configuración</Text>
-      
+
       {/* Sección de Cuenta */}
       <View style={styles.section}>
         <Text style={[styles.sectionTitle]}>Cuenta</Text>
         <TouchableOpacity
           style={styles.option}
-          onPress={() => navigation.navigate('Perfil')} // Navega a la vista Perfil
+          onPress={() => navigation.navigate("Perfil")} // Navega a la vista Perfil
         >
           <Ionicons name="person-outline" size={24} color={"#333"} />
           <Text style={[styles.optionText]}>Editar perfil</Text>
@@ -30,7 +38,7 @@ const ConfiguracionScreen = ({ navigation }) => {
           <Ionicons name="chevron-forward" size={20} color="#999" />
         </TouchableOpacity>
       </View>
-      
+
       {/* Sección de Joyería */}
       <View style={styles.section}>
         <Text style={[styles.sectionTitle]}>Preferencias de Joyería</Text>
@@ -50,7 +58,7 @@ const ConfiguracionScreen = ({ navigation }) => {
           <Ionicons name="chevron-forward" size={20} color="#999" />
         </TouchableOpacity>
       </View>
-      
+
       {/* Sección de Soporte */}
       <View style={styles.section}>
         <Text style={[styles.sectionTitle]}>Soporte</Text>
@@ -65,17 +73,26 @@ const ConfiguracionScreen = ({ navigation }) => {
           <Ionicons name="chevron-forward" size={20} color="#999" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.option}>
-          <Ionicons name="information-circle-outline" size={24} color={"#333"} />
+          <Ionicons
+            name="information-circle-outline"
+            size={24}
+            color={"#333"}
+          />
           <Text style={[styles.optionText]}>Acerca de</Text>
           <Ionicons name="chevron-forward" size={20} color="#999" />
         </TouchableOpacity>
       </View>
-      
+
       {/* Cerrar sesión */}
-      <TouchableOpacity style={[styles.logoutButton]}>
+      <TouchableOpacity
+        style={[styles.logoutButton]}
+        onPress={async () => {
+          await logoutUser();
+        }}
+      >
         <Text style={styles.logoutText}>Cerrar sesión</Text>
       </TouchableOpacity>
-      
+
       <Text style={[styles.versionText]}>Versión 1.0.0</Text>
     </ScrollView>
   );
@@ -84,74 +101,74 @@ const ConfiguracionScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: "#f9f9f9",
     padding: 16,
   },
-  
+
   header: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 24,
-    color: '#333',
+    color: "#333",
   },
- 
+
   section: {
     marginBottom: 24,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 8,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,
   },
   darkSection: {
-    backgroundColor: '#1e1e1e',
+    backgroundColor: "#1e1e1e",
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     padding: 12,
-    color: '#666',
+    color: "#666",
   },
   option: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: "#eee",
   },
-  
+
   optionText: {
     flex: 1,
     marginLeft: 16,
     fontSize: 16,
-    color: '#333',
+    color: "#333",
   },
   logoutButton: {
     marginTop: 24,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: 16,
     borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,
   },
-  
+
   logoutText: {
-    color: '#d9534f',
-    fontWeight: '600',
+    color: "#d9534f",
+    fontWeight: "600",
     fontSize: 16,
   },
   versionText: {
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 24,
-    color: '#999',
+    color: "#999",
     fontSize: 12,
   },
 });
