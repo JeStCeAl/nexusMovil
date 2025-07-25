@@ -1,304 +1,304 @@
-import React, { useState } from "react";
 import {
   View,
   Text,
-  TextInput,
-  Image,
-  TouchableOpacity,
   StyleSheet,
-  ScrollView,
+  ActivityIndicator,
   Alert,
-  Platform,
+  Image,
+  ScrollView,
 } from "react-native";
-import * as ImagePicker from "expo-image-picker";
-import { Ionicons } from "@expo/vector-icons";
+import React, { useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import BottonComponent from "../../Components/BotonComponent";
+import api from "../../src/Services/conexion";
+import { logoutUser } from "../../src/Services/AuthService";
+import { MaterialIcons } from "@expo/vector-icons";
+import EditarPerfil from "./EditarPerfil";
 
-const Perfil = () => {
-  const [profile, setProfile] = useState({
-    username: "johndoe",
-    name: "John Doe",
-    email: "john.doe@example.com",
-    address: "123 Main St, City",
-    phone: "+1 234 567 890",
-    profilePhoto: "https://randomuser.me/api/portraits/men/1.jpg",
-  });
+export default function Perfil({ navigation }) {
+  const [usuario, setUsuario] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const [passwords, setPasswords] = useState({
-    current: "",
-    new: "",
-    confirm: "",
-  });
+  useEffect(() => {
+    const cargarPefil = async () => {
+      try {
+        const token = await AsyncStorage.getItem("userToken");
+        if (!token) {
+          console.log("No se encontró el token de usuario");
+          return;
+        }
 
-  const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert(
-        "Permiso requerido",
-        "Necesitamos acceso a tu galería para cambiar la foto."
-      );
-      return;
-    }
+        console.log("Intentando cargar perfil con token:", token);
+        const response = await api.get("/me");
+        console.log("Perfil cargado exitosamente:", response.data);
+        setUsuario(response.data);
+      } catch (error) {
+        console.log("Error al cargar el perfil:", error);
+        if (error.isAuthError || error.shouldRedirectToLogin) {
+          console.log("Error de autenticación, redirigiendo a login...");
+          return;
+        }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
+        if (error.response) {
+          console.log(
+            "Error response: ",
+            error.response.status,
+            error.response.data
+          );
+          Alert.alert(
+            "Error al servidor",
+            `Error ${error.response.status}: ${
+              error.response.data?.message ||
+              "Ocurrió un error al cargar el perfil."
+            }`,
+            [
+              {
+                text: "OK",
+                onPress: async () => {
+                  await AsyncStorage.removeItem("userToken");
+                },
+              },
+            ]
+          );
+        } else if (error.request) {
+          Alert.alert(
+            "Error de conexión",
+            "No se pudo conectar al servidor. Por favor, verifica tu conexión a internet.",
+            [
+              {
+                text: "OK",
+                onPress: async () => {
+                  await AsyncStorage.removeItem("userToken");
+                },
+              },
+            ]
+          );
+        } else {
+          Alert.alert(
+            "Error",
+            "Ocurrió un error inesperado al cargar el perfil.",
+            [
+              {
+                text: "OK",
+                onPress: async () => {
+                  await AsyncStorage.removeItem("userToken");
+                },
+              },
+            ]
+          );
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const unsubscribe = navigation.addListener("focus", () => {
+      cargarPefil();
     });
 
-    if (!result.canceled) {
-      setProfile({ ...profile, profilePhoto: result.assets[0].uri });
-    }
+    return unsubscribe;
+  }, [navigation]);
+
+  const handleEditProfile = () => {
+    navigation.navigate("EditarPerfil", { usuario });
   };
 
-  const validateForm = () => {
-    if (profile.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email)) {
-      Alert.alert(
-        "Correo inválido",
-        "Por favor ingresa un correo electrónico válido."
-      );
-      return false;
-    }
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#4A90E2" />
+      </View>
+    );
+  }
 
-    if (passwords.new && passwords.new !== passwords.confirm) {
-      Alert.alert("Error en contraseña", "Las contraseñas no coinciden.");
-      return false;
-    }
-
-    if (passwords.new && !passwords.current) {
-      Alert.alert(
-        "Error",
-        "Debes ingresar tu contraseña actual para cambiarla."
-      );
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleSave = () => {
-    if (!validateForm()) return;
-
-    setPasswords({ current: "", new: "", confirm: "" });
-    Alert.alert("Éxito", "Tu perfil ha sido actualizado.");
-  };
+  if (!usuario) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Perfil de Usuario</Text>
+        <View style={styles.profileContainer}>
+          <Text style={styles.errorText}>
+            No se pudo cargar el perfil del usuario.
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.editView}>
-          <TouchableOpacity
-            style={styles.avatarEditContainer}
-            onPress={pickImage}
-          >
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <View style={styles.avatarContainer}>
             <Image
-              source={{ uri: profile.profilePhoto }}
+              source={require("../../assets/icon.png")}
               style={styles.avatar}
             />
-            <View style={styles.cameraIcon}>
-              <Ionicons name="camera" size={20} color="white" />
+          </View>
+          <Text style={styles.userName}>{usuario.nombre || "Usuario"}</Text>
+          <Text style={styles.userRole}>{usuario.tipo || "Rol no definido"}</Text>
+        </View>
+
+        <View style={styles.profileContainer}>
+          <View style={styles.infoSection}>
+            <Text style={styles.sectionTitle}>Información Personal</Text>
+
+            <View style={styles.infoItem}>
+              <MaterialIcons name="person" size={20} color="#4A90E2" />
+              <Text style={styles.infoText}>{usuario.nombre || "No disponible"}</Text>
             </View>
-            <Text style={styles.changePhotoText}>Cambiar foto</Text>
-          </TouchableOpacity>
 
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Nombre completo</Text>
-            <TextInput
-              style={styles.input}
-              value={profile.name}
-              onChangeText={(name) => setProfile({ ...profile, name })}
-              placeholder="Ingresa tu nombre"
+            <View style={styles.infoItem}>
+              <MaterialIcons name="email" size={20} color="#4A90E2" />
+              <Text style={styles.infoText}>{usuario.email || "No disponible"}</Text>
+            </View>
+
+            <View style={styles.infoItem}>
+              <MaterialIcons name="work" size={20} color="#4A90E2" />
+              <Text style={styles.infoText}>{usuario.tipo || "No disponible"}</Text>
+            </View>
+          </View>
+
+          <View style={styles.buttonGroup}>
+            <BottonComponent
+              title="Editar Perfil"
+              onPress={handleEditProfile}
+              style={styles.editButton}
+              textStyle={styles.buttonText}
+            />
+            <BottonComponent
+              title="Cerrar Sesión"
+              onPress={async () => {
+                await logoutUser();
+              }}
+              style={styles.logoutButton}
+              textStyle={styles.buttonText}
             />
           </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Nombre de usuario</Text>
-            <TextInput
-              style={styles.input}
-              value={profile.username}
-              onChangeText={(username) => setProfile({ ...profile, username })}
-              placeholder="Ingresa tu nombre de usuario"
-            />
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Correo electrónico</Text>
-            <TextInput
-              style={styles.input}
-              value={profile.email}
-              onChangeText={(email) => setProfile({ ...profile, email })}
-              placeholder="Ingresa tu correo"
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Dirección</Text>
-            <TextInput
-              style={styles.input}
-              value={profile.address}
-              onChangeText={(address) => setProfile({ ...profile, address })}
-              placeholder="Ingresa tu dirección"
-            />
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Teléfono</Text>
-            <TextInput
-              style={styles.input}
-              value={profile.phone}
-              onChangeText={(phone) => setProfile({ ...profile, phone })}
-              placeholder="Ingresa tu teléfono"
-              keyboardType="phone-pad"
-            />
-          </View>
-
-          <View style={styles.sectionDivider}>
-            <Text style={styles.sectionTitle}>Cambiar contraseña</Text>
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Contraseña actual</Text>
-            <TextInput
-              style={styles.input}
-              value={passwords.current}
-              onChangeText={(current) =>
-                setPasswords({ ...passwords, current })
-              }
-              placeholder="Ingresa tu contraseña actual"
-              secureTextEntry
-            />
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Nueva contraseña</Text>
-            <TextInput
-              style={styles.input}
-              value={passwords.new}
-              onChangeText={(nw) => setPasswords({ ...passwords, new: nw })}
-              placeholder="Ingresa tu nueva contraseña"
-              secureTextEntry
-            />
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Confirmar contraseña</Text>
-            <TextInput
-              style={styles.input}
-              value={passwords.confirm}
-              onChangeText={(confirm) =>
-                setPasswords({ ...passwords, confirm })
-              }
-              placeholder="Confirma tu nueva contraseña"
-              secureTextEntry
-            />
-          </View>
-
-          <TouchableOpacity
-            style={[styles.button, styles.saveButton]}
-            onPress={handleSave}
-          >
-            <Text style={styles.buttonText}>Guardar cambios</Text>
-          </TouchableOpacity>
         </View>
       </View>
     </ScrollView>
   );
-};
+}
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: "#f9fafb",
+    backgroundColor: "#F8F9FA",
   },
-  content: {
+  loadingContainer: {
     flex: 1,
-    padding: 20,
-  },
-  editView: {
-    marginBottom: 20,
-  },
-  avatarEditContainer: {
+    justifyContent: "center",
     alignItems: "center",
-    marginBottom: 24,
+    backgroundColor: "#F8F9FA",
+  },
+  header: {
+    alignItems: "center",
+    paddingVertical: 30,
+    backgroundColor: "#4A90E2",
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  avatarContainer: {
+    position: "relative",
+    marginBottom: 15,
   },
   avatar: {
     width: 120,
     height: 120,
     borderRadius: 60,
     borderWidth: 3,
-    borderColor: "#e5e7eb",
+    borderColor: "white",
   },
-  cameraIcon: {
+  avatarOverlay: {
     position: "absolute",
-    right: 10,
-    bottom: 30,
-    backgroundColor: "#3b82f6",
-    borderRadius: 15,
-    padding: 6,
-  },
-  changePhotoText: {
-    color: "#3b82f6",
-    marginTop: 8,
-    fontWeight: "500",
-  },
-  formGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#4b5563",
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: "white",
-    borderRadius: 8,
-    padding: 14,
-    fontSize: 16,
-    color: "#111827",
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
-      },
-      android: {
-        elevation: 1,
-      },
-    }),
-  },
-  button: {
-    borderRadius: 8,
-    padding: 16,
-    alignItems: "center",
+    right: 0,
+    bottom: 0,
+    backgroundColor: "#4A90E2",
+    borderRadius: 20,
+    width: 40,
+    height: 40,
     justifyContent: "center",
-    marginBottom: 12,
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "white",
   },
-  buttonText: {
-    fontSize: 16,
+  userName: {
+    fontSize: 24,
     fontWeight: "600",
     color: "white",
+    marginBottom: 5,
   },
-  saveButton: {
-    backgroundColor: "#3b82f6",
-    marginTop: 8,
+  userRole: {
+    fontSize: 16,
+    color: "rgba(255,255,255,0.8)",
+    fontWeight: "500",
   },
-  sectionDivider: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-    marginVertical: 24,
-    paddingBottom: 8,
+  profileContainer: {
+    paddingHorizontal: 25,
+    marginBottom: 30,
+  },
+  infoSection: {
+    backgroundColor: "white",
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 25,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#111827",
+    color: "#2C3E50",
+    marginBottom: 15,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ECF0F1",
+  },
+  infoItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  infoText: {
+    fontSize: 16,
+    color: "#34495E",
+    marginLeft: 10,
+  },
+  buttonGroup: {
+    marginTop: 10,
+  },
+  editButton: {
+    backgroundColor: "#4A90E2",
+    borderRadius: 8,
+    paddingVertical: 14,
+    marginBottom: 15,
+  },
+  logoutButton: {
+    backgroundColor: "#E74C3C",
+    borderRadius: 8,
+    paddingVertical: 14,
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  errorText: {
+    fontSize: 16,
+    color: "#E74C3C",
+    textAlign: "center",
+    marginVertical: 20,
   },
 });
-
-export default Perfil;
