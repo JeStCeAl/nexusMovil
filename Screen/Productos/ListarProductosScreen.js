@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,16 +6,17 @@ import {
   Image,
   TouchableOpacity,
   StyleSheet,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
+} from "react-native";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons";
 
-const productosJoyeria = [
+const initialProductos = [
   {
     id: 1,
     nombre: "Collar de Diamantes",
     precio: 1250.99,
-    imagen: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80",
+    imagen:
+      "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80",
     rating: 4.9,
     material: "Oro 18k",
     disponible: true,
@@ -24,7 +25,8 @@ const productosJoyeria = [
     id: 2,
     nombre: "Anillo Esmeralda",
     precio: 899.99,
-    imagen: "https://images.unsplash.com/photo-1602173574767-37ac01994b2a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=735&q=80",
+    imagen:
+      "https://images.unsplash.com/photo-1602173574767-37ac01994b2a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=735&q=80",
     rating: 4.7,
     material: "Platino",
     disponible: true,
@@ -33,7 +35,8 @@ const productosJoyeria = [
     id: 3,
     nombre: "Pendientes Perlas",
     precio: 450.5,
-    imagen: "https://images.unsplash.com/photo-1611591437281-4608be122683?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80",
+    imagen:
+      "https://images.unsplash.com/photo-1611591437281-4608be122683?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80",
     rating: 4.5,
     material: "Plata esterlina",
     disponible: true,
@@ -42,7 +45,8 @@ const productosJoyeria = [
     id: 4,
     nombre: "Pulsera Rubí",
     precio: 780.0,
-    imagen: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
+    imagen:
+      "https://images.unsplash.com/photo-1605100804763-247f67b3557e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
     rating: 4.8,
     material: "Oro rosa",
     disponible: false,
@@ -51,11 +55,24 @@ const productosJoyeria = [
 
 export default function ListarProductosScreen() {
   const navigation = useNavigation();
+  const route = useRoute();
+
+  const [productos, setProductos] = useState(initialProductos);
+
+  // Actualiza la lista cuando regresa de ProductoDetalle
+  useEffect(() => {
+    if (route.params?.producto) {
+      const actualizado = route.params.producto;
+      setProductos((prev) =>
+        prev.map((p) => (p.id === actualizado.id ? actualizado : p))
+      );
+    }
+  }, [route.params?.producto]);
 
   const renderProductItem = ({ item }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => navigation.navigate('ProductoDetalle', { producto: item })}
+      onPress={() => navigation.navigate("ProductoDetalle", { producto: item })}
     >
       <View style={styles.imageContainer}>
         <Image source={{ uri: item.imagen }} style={styles.image} />
@@ -67,14 +84,30 @@ export default function ListarProductosScreen() {
       </View>
 
       <View style={styles.detailsContainer}>
-        <Text style={styles.name} numberOfLines={1}>{item.nombre}</Text>
+        <Text style={styles.name} numberOfLines={1}>
+          {item.nombre}
+        </Text>
         <Text style={styles.material}>{item.material}</Text>
 
         <View style={styles.priceRatingContainer}>
           <Text style={styles.price}>${item.precio.toFixed(2)}</Text>
           <View style={styles.ratingContainer}>
-            <Ionicons name="star" size={16} color="#FFD700" />
-            <Text style={styles.rating}>{item.rating}</Text>
+            {/* Pintamos estrellas dinámicas */}
+            {Array.from({ length: 5 }).map((_, index) => (
+              <Ionicons
+                key={index}
+                name={
+                  index < Math.floor(item.rating)
+                    ? "star"
+                    : index < item.rating
+                    ? "star-half"
+                    : "star-outline"
+                }
+                size={16}
+                color="#FFD700"
+              />
+            ))}
+            <Text style={styles.rating}>{item.rating.toFixed(1)}</Text>
           </View>
         </View>
 
@@ -95,7 +128,7 @@ export default function ListarProductosScreen() {
       </View>
 
       <FlatList
-        data={productosJoyeria}
+        data={productos}
         renderItem={renderProductItem}
         keyExtractor={(item) => item.id.toString()}
         numColumns={2}

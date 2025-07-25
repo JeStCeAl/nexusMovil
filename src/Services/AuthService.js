@@ -12,7 +12,6 @@ const isValidPassword = (password) => {
 };
 
 export const loginUser = async (email, password) => {
-  // Validaciones antes de la petición
   if (!email || !password) {
     return {
       success: false,
@@ -47,6 +46,7 @@ export const loginUser = async (email, password) => {
     };
   }
 };
+
 export const logoutUser = async () => {
   try {
     await api.post("/logout");
@@ -64,8 +64,6 @@ export const logoutUser = async () => {
   }
 };
 
-
-
 export const registerUser = async (
   nombre,
   direccion,
@@ -73,9 +71,8 @@ export const registerUser = async (
   username,
   email,
   password,
-  tipo = "USER" // Este parámetro se mantiene por compatibilidad pero se ignorará
+  tipo = "USER"
 ) => {
-  // Validaciones frontend antes de enviar
   if (!nombre || !direccion || !telefono || !username || !email || !password) {
     return {
       success: false,
@@ -118,10 +115,9 @@ export const registerUser = async (
       direccion,
       telefono,
       username,
-      tipo: "USER", // Siempre se envía "USER" sin importar lo que venga en el parámetro
+      tipo: "USER",
     });
 
-    // Opcional: Login automático después del registro
     const loginResult = await loginUser(email, password);
     if (!loginResult.success) {
       return loginResult;
@@ -138,7 +134,6 @@ export const registerUser = async (
       error.response ? error.response.data : error.message
     );
 
-    // Manejo específico de errores de conexión
     if (!error.response) {
       return {
         success: false,
@@ -149,6 +144,41 @@ export const registerUser = async (
     return {
       success: false,
       error: error.response.data,
+    };
+  }
+};
+
+export const sendPasswordResetEmail = async (email) => {
+  try {
+    const response = await api.post('/forgot-password', { email });
+    return {
+      success: true,
+      message: response.data.message
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error.response?.data?.message || 'Error al enviar el email'
+    };
+  }
+};
+
+export const resetPassword = async (email, token, password) => {
+  try {
+    const response = await api.post('/reset-password', {
+      email,
+      token,
+      password,
+      password_confirmation: password
+    });
+    return {
+      success: true,
+      message: response.data.message
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error.response?.data?.message || 'Error al restablecer contraseña'
     };
   }
 };

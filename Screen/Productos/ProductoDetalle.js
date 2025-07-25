@@ -1,4 +1,3 @@
-import React from "react";
 import {
   View,
   Text,
@@ -8,9 +7,30 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import CommentSection from "../../Components/CommentSection";
+import CommentList from "../../Components/CommentList";
+import { useState, useEffect } from "react";
 
 const ProductoDetalle = ({ route, navigation }) => {
   const { producto } = route.params;
+
+  const [comments, setComments] = useState([]);
+  const [averageRating, setAverageRating] = useState(producto.rating);
+
+  const handleSubmitComment = (newComment) => {
+    const updatedComments = [...comments, newComment];
+    setComments(updatedComments);
+
+    const total = updatedComments.reduce((acc, c) => acc + c.rating, 0);
+    const avg = total / updatedComments.length;
+
+    setAverageRating(avg);
+
+    // Actualizamos el producto con el nuevo rating para enviarlo de vuelta a la lista
+    navigation.setParams({
+      producto: { ...producto, rating: avg },
+    });
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -22,8 +42,24 @@ const ProductoDetalle = ({ route, navigation }) => {
         <View style={styles.priceRatingContainer}>
           <Text style={styles.price}>${producto.precio.toFixed(2)}</Text>
           <View style={styles.ratingContainer}>
-            <Ionicons name="star" size={20} color="#FFD700" />
-            <Text style={styles.rating}>{producto.rating}</Text>
+            {/* Pintamos estrellas dinámicas según el promedio */}
+            {Array.from({ length: 5 }).map((_, index) => (
+              <Ionicons
+                key={index}
+                name={
+                  index < Math.floor(averageRating)
+                    ? "star"
+                    : index < averageRating
+                    ? "star-half"
+                    : "star-outline"
+                }
+                size={20}
+                color="#FFD700"
+              />
+            ))}
+            <Text style={styles.rating}>
+              {averageRating.toFixed(1)}
+            </Text>
           </View>
         </View>
 
@@ -53,9 +89,13 @@ const ProductoDetalle = ({ route, navigation }) => {
           <Text style={styles.buyButtonText}>Comprar</Text>
         </TouchableOpacity>
       </View>
+
+      <CommentSection onSubmitComment={handleSubmitComment} />
+      <CommentList comments={comments} />
     </ScrollView>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -92,7 +132,7 @@ const styles = StyleSheet.create({
   },
   rating: {
     fontSize: 16,
-    marginLeft: 5,
+    marginLeft: 8,
     color: "#888",
   },
   sectionTitle: {
@@ -123,7 +163,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginTop: 20,
     alignItems: "center",
-    opacity: 1,
   },
   buyButtonText: {
     color: "#fff",
@@ -131,4 +170,5 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 });
+
 export default ProductoDetalle;
