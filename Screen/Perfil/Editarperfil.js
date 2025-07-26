@@ -10,29 +10,28 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { editProfile } from "../../src/Services/AuthService";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import api from "../../src/Services/conexion"; // Usa tu instancia de Axios configurada
 
 const EditarPerfil = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const [loading, setLoading] = useState(false);
 
-  // Obtener los datos del usuario de los parámetros de navegación
+  // Obtener los datos del usuario de los parámetros
   const userData = route.params?.usuario || {};
 
-  // Estado inicial con los datos del usuario
   const [formData, setFormData] = useState({
-    name: userData.nombre || "",
+    nombre: userData.nombre || "",
     email: userData.email || "",
     password: "",
     confirmPassword: "",
   });
 
-  // Actualizar el estado si los parámetros cambian
   useEffect(() => {
     if (route.params?.usuario) {
       setFormData({
-        name: route.params.usuario.nombre || "",
+        nombre: route.params.usuario.nombre || "",
         email: route.params.usuario.email || "",
         password: "",
         confirmPassword: "",
@@ -40,11 +39,8 @@ const EditarPerfil = () => {
     }
   }, [route.params]);
 
-  const handleChange = (name, value) => {
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+  const handleChange = (field, value) => {
+    setFormData({ ...formData, [field]: value });
   };
 
   const handleSubmit = async () => {
@@ -55,29 +51,35 @@ const EditarPerfil = () => {
 
     setLoading(true);
     try {
-      const dataToSend = {
-        name: formData.name,
+      const token = await AsyncStorage.getItem("token");
+
+      const payload = {
+        nombre: formData.nombre,
         email: formData.email,
       };
 
       if (formData.password) {
-        dataToSend.password = formData.password;
+        payload.password = formData.password;
       }
 
-      const result = await editProfile(dataToSend);
+      const response = await api.put("/editarPerfil", payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-      if (result.success) {
+      if (response.data.success) {
         Alert.alert("Éxito", "Perfil actualizado correctamente");
-        navigation.navigate("Perfil", { updatedUser: result.data });
+        navigation.navigate("Perfil", { updatedUser: response.data.usuario });
       } else {
-        Alert.alert(
-          "Error",
-          result.error?.message || "Error al actualizar el perfil"
-        );
+        Alert.alert("Error", "No se pudo actualizar el perfil");
       }
     } catch (error) {
-      Alert.alert("Error", "Ocurrió un error al actualizar el perfil");
-      console.error("Error en EditarPerfil:", error);
+      console.error("Error al actualizar perfil:", error);
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Error desconocido al actualizar el perfil"
+      );
     } finally {
       setLoading(false);
     }
@@ -89,8 +91,8 @@ const EditarPerfil = () => {
 
       <TextInput
         placeholder="Nombre"
-        value={formData.name}
-        onChangeText={(text) => handleChange("name", text)}
+        value={formData.nombre}
+        onChangeText={(text) => handleChange("nombre", text)}
         style={styles.input}
       />
 
@@ -144,6 +146,8 @@ const EditarPerfil = () => {
   );
 };
 
+export default EditarPerfil;
+
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
@@ -178,7 +182,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 16,
   },
-  cancelButton: {
+  cancelButton: { 
     padding: 15,
     borderRadius: 5,
     alignItems: "center",
@@ -192,5 +196,3 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-
-export default EditarPerfil;

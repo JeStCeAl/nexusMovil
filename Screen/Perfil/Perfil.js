@@ -13,7 +13,7 @@ import BottonComponent from "../../Components/BotonComponent";
 import api from "../../src/Services/conexion";
 import { logoutUser } from "../../src/Services/AuthService";
 import { MaterialIcons } from "@expo/vector-icons";
-import EditarPerfil from "./EditarPerfil";
+import EditarPerfil from "./EditarPerfil"; // Assuming this is the correct path for EditarPerfil
 
 export default function Perfil({ navigation }) {
   const [usuario, setUsuario] = useState(null);
@@ -135,7 +135,9 @@ export default function Perfil({ navigation }) {
             />
           </View>
           <Text style={styles.userName}>{usuario.nombre || "Usuario"}</Text>
-          <Text style={styles.userRole}>{usuario.tipo || "Rol no definido"}</Text>
+          <Text style={styles.userRole}>
+            {usuario.tipo || "Rol no definido"}
+          </Text>
         </View>
 
         <View style={styles.profileContainer}>
@@ -144,17 +146,23 @@ export default function Perfil({ navigation }) {
 
             <View style={styles.infoItem}>
               <MaterialIcons name="person" size={20} color="#4A90E2" />
-              <Text style={styles.infoText}>{usuario.nombre || "No disponible"}</Text>
+              <Text style={styles.infoText}>
+                {usuario.nombre || "No disponible"}
+              </Text>
             </View>
 
             <View style={styles.infoItem}>
               <MaterialIcons name="email" size={20} color="#4A90E2" />
-              <Text style={styles.infoText}>{usuario.email || "No disponible"}</Text>
+              <Text style={styles.infoText}>
+                {usuario.email || "No disponible"}
+              </Text>
             </View>
 
             <View style={styles.infoItem}>
               <MaterialIcons name="work" size={20} color="#4A90E2" />
-              <Text style={styles.infoText}>{usuario.tipo || "No disponible"}</Text>
+              <Text style={styles.infoText}>
+                {usuario.tipo || "No disponible"}
+              </Text>
             </View>
           </View>
 

@@ -59,7 +59,9 @@ export const logoutUser = async () => {
     );
     return {
       success: false,
-      error: error.response ? error.response.data : { message: "Error al cerrar sesión" },
+      error: error.response
+        ? error.response.data
+        : { message: "Error al cerrar sesión" },
     };
   }
 };
@@ -150,35 +152,101 @@ export const registerUser = async (
 
 export const sendPasswordResetEmail = async (email) => {
   try {
-    const response = await api.post('/forgot-password', { email });
+    const response = await api.post("/forgot-password", { email });
     return {
       success: true,
-      message: response.data.message
+      message: response.data.message,
     };
   } catch (error) {
     return {
       success: false,
-      message: error.response?.data?.message || 'Error al enviar el email'
+      message: error.response?.data?.message || "Error al enviar el email",
     };
   }
 };
 
 export const resetPassword = async (email, token, password) => {
   try {
-    const response = await api.post('/reset-password', {
+    const response = await api.post("/reset-password", {
       email,
       token,
       password,
-      password_confirmation: password
+      password_confirmation: password,
     });
     return {
       success: true,
-      message: response.data.message
+      message: response.data.message,
     };
   } catch (error) {
     return {
       success: false,
-      message: error.response?.data?.message || 'Error al restablecer contraseña'
+      message:
+        error.response?.data?.message || "Error al restablecer contraseña",
+    };
+  }
+};
+
+export const editProfile = async (userData) => {
+  // Validaciones frontend básicas
+  const { name, email, password, role } = userData;
+  const errors = {};
+
+  if (email && !isValidEmail(email)) {
+    errors.email = ["Por favor ingresa un email válido"];
+  }
+
+  if (password && !isValidPassword(password)) {
+    errors.password = ["La contraseña debe tener al menos 8 caracteres"];
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return {
+      success: false,
+      error: { errors },
+    };
+  }
+
+  try {
+    // Obtener el token almacenado
+    const token = await AsyncStorage.getItem("userToken");
+
+    if (!token) {
+      return {
+        success: false,
+        error: { message: "No se encontró token de autenticación" },
+      };
+    }
+
+    // Configurar headers con el token
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+
+    // Preparar datos a enviar
+    const dataToSend = {};
+    if (name) dataToSend.name = name;
+    if (email) dataToSend.email = email;
+    if (password) dataToSend.password = password;
+    if (role) dataToSend.role = role;
+
+    // Hacer la petición
+    const response = await api.put("/editarPerfil", dataToSend, config);
+
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error) {
+    console.error(
+      "Error al editar perfil",
+      error.response ? error.response.data : error.message
+    );
+
+    return {
+      success: false,
+      error: error.response
+        ? error.response.data
+        : { message: "Error de conexión" },
     };
   }
 };
