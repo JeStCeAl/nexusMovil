@@ -16,6 +16,7 @@ const ProductoDetalle = ({ route, navigation }) => {
 
   const [comments, setComments] = useState([]);
   const [averageRating, setAverageRating] = useState(producto.rating);
+  const [isAvailable, setIsAvailable] = useState(producto.cantidad >= 1); // Cambiado a >= 1
 
   const handleSubmitComment = (newComment) => {
     const updatedComments = [...comments, newComment];
@@ -26,11 +27,15 @@ const ProductoDetalle = ({ route, navigation }) => {
 
     setAverageRating(avg);
 
-    // Actualizamos el producto con el nuevo rating para enviarlo de vuelta a la lista
     navigation.setParams({
       producto: { ...producto, rating: avg },
     });
   };
+
+  // Actualizamos la disponibilidad cuando cambia la cantidad
+  useEffect(() => {
+    setIsAvailable(producto.cantidad >= 1); // Cambiado a >= 1
+  }, [producto.cantidad]);
 
   return (
     <ScrollView style={styles.container}>
@@ -40,9 +45,8 @@ const ProductoDetalle = ({ route, navigation }) => {
         <Text style={styles.productName}>{producto.nombre}</Text>
 
         <View style={styles.priceRatingContainer}>
-          <Text style={styles.price}>${producto.precio.toFixed(2)}</Text>
+          <Text style={styles.price}>${producto.precio}</Text>
           <View style={styles.ratingContainer}>
-            {/* Pintamos estrellas dinámicas según el promedio */}
             {Array.from({ length: 5 }).map((_, index) => (
               <Ionicons
                 key={index}
@@ -57,36 +61,47 @@ const ProductoDetalle = ({ route, navigation }) => {
                 color="#FFD700"
               />
             ))}
-            <Text style={styles.rating}>
-              {averageRating.toFixed(1)}
-            </Text>
           </View>
         </View>
 
         <Text style={styles.sectionTitle}>Material</Text>
         <Text style={styles.material}>{producto.material}</Text>
+        <Text style={styles.sectionTitle}>Descripción</Text>
+        <Text style={styles.material}>{producto.descripcion}</Text>
+        <Text style={styles.sectionTitle}>Peso</Text>
+        <Text style={styles.material}>{producto.peso} kg</Text>
+        <Text style={styles.sectionTitle}>Dimensiones</Text>
+        <Text style={styles.material}>{producto.dimensiones}</Text>
+
+        <Text style={styles.sectionTitle}>Unidades Disponibles</Text>
+        <Text style={styles.material}>{producto.cantidad}</Text>
 
         <Text style={styles.sectionTitle}>Disponibilidad</Text>
         <Text
           style={[
             styles.availability,
-            producto.disponible ? styles.available : styles.notAvailable,
+            isAvailable ? styles.available : styles.notAvailable,
           ]}
         >
-          {producto.disponible ? "Disponible" : "Agotado"}
+          {isAvailable ? "Disponible" : "Agotado"}
         </Text>
 
         <TouchableOpacity
-          style={styles.buyButton}
+          style={[
+            styles.buyButton,
+            !isAvailable && styles.disabledButton,
+          ]}
           onPress={() =>
             navigation.navigate("carrito", {
               screen: "Carro",
               params: { producto },
             })
           }
-          disabled={!producto.disponible}
+          disabled={!isAvailable}
         >
-          <Text style={styles.buyButtonText}>Comprar</Text>
+          <Text style={styles.buyButtonText}>
+            {isAvailable ? "Comprar" : "Agotado"}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -163,6 +178,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginTop: 20,
     alignItems: "center",
+  },
+  disabledButton: {
+    backgroundColor: "#cccccc",
   },
   buyButtonText: {
     color: "#fff",

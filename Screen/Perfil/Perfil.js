@@ -3,110 +3,76 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
-  Alert,
   Image,
   ScrollView,
+  TouchableOpacity,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import BottonComponent from "../../Components/BotonComponent";
+import { MaterialIcons, FontAwesome, Ionicons, Feather } from "@expo/vector-icons";
 import api from "../../src/Services/conexion";
 import { logoutUser } from "../../src/Services/AuthService";
-import { MaterialIcons } from "@expo/vector-icons";
-import EditarPerfil from "./EditarPerfil"; // Assuming this is the correct path for EditarPerfil
 
 export default function Perfil({ navigation }) {
   const [usuario, setUsuario] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const cargarPerfil = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) {
+        throw new Error("No se encontró token de autenticación");
+      }
+
+      const response = await api.get("/me");
+      if (!response.data) {
+        throw new Error("Datos de usuario no recibidos");
+      }
+
+      setUsuario(response.data);
+    } catch (err) {
+      console.error("Error al cargar perfil:", err);
+      setError(err.message || "Error al cargar el perfil");
+      
+      if (err.response?.status === 401) {
+        await logoutUser();
+        navigation.navigate("Login");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const cargarPefil = async () => {
-      try {
-        const token = await AsyncStorage.getItem("userToken");
-        if (!token) {
-          console.log("No se encontró el token de usuario");
-          return;
-        }
-
-        console.log("Intentando cargar perfil con token:", token);
-        const response = await api.get("/me");
-        console.log("Perfil cargado exitosamente:", response.data);
-        setUsuario(response.data);
-      } catch (error) {
-        console.log("Error al cargar el perfil:", error);
-        if (error.isAuthError || error.shouldRedirectToLogin) {
-          console.log("Error de autenticación, redirigiendo a login...");
-          return;
-        }
-
-        if (error.response) {
-          console.log(
-            "Error response: ",
-            error.response.status,
-            error.response.data
-          );
-          Alert.alert(
-            "Error al servidor",
-            `Error ${error.response.status}: ${
-              error.response.data?.message ||
-              "Ocurrió un error al cargar el perfil."
-            }`,
-            [
-              {
-                text: "OK",
-                onPress: async () => {
-                  await AsyncStorage.removeItem("userToken");
-                },
-              },
-            ]
-          );
-        } else if (error.request) {
-          Alert.alert(
-            "Error de conexión",
-            "No se pudo conectar al servidor. Por favor, verifica tu conexión a internet.",
-            [
-              {
-                text: "OK",
-                onPress: async () => {
-                  await AsyncStorage.removeItem("userToken");
-                },
-              },
-            ]
-          );
-        } else {
-          Alert.alert(
-            "Error",
-            "Ocurrió un error inesperado al cargar el perfil.",
-            [
-              {
-                text: "OK",
-                onPress: async () => {
-                  await AsyncStorage.removeItem("userToken");
-                },
-              },
-            ]
-          );
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const unsubscribe = navigation.addListener("focus", () => {
-      cargarPefil();
-    });
-
+    const unsubscribe = navigation.addListener("focus", cargarPerfil);
+    cargarPerfil();
     return unsubscribe;
   }, [navigation]);
 
   const handleEditProfile = () => {
-    navigation.navigate("EditarPerfil", { usuario });
+    navigation.navigate('EditarPerfil', { usuario });
   };
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4A90E2" />
+        <ActivityIndicator size="large" color="#D4AF37" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorTitle}>Error al cargar perfil</Text>
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={cargarPerfil}>
+          <Text style={styles.retryButtonText}>Reintentar</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -114,12 +80,10 @@ export default function Perfil({ navigation }) {
   if (!usuario) {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Perfil de Usuario</Text>
-        <View style={styles.profileContainer}>
-          <Text style={styles.errorText}>
-            No se pudo cargar el perfil del usuario.
-          </Text>
-        </View>
+        <Text style={styles.errorTitle}>Perfil no disponible</Text>
+        <Text style={styles.errorText}>
+          No se pudieron cargar los datos del usuario.
+        </Text>
       </View>
     );
   }
@@ -127,60 +91,80 @@ export default function Perfil({ navigation }) {
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
+        {/* Header con imagen de diamante de fondo */}
         <View style={styles.header}>
           <View style={styles.avatarContainer}>
             <Image
-              source={require("../../assets/icon.png")}
+              source={usuario.foto ? { uri: usuario.foto } : require("../../assets/diamante.png")}
               style={styles.avatar}
             />
+            <TouchableOpacity style={styles.editIcon} onPress={handleEditProfile}>
+              <Feather name="edit-2" size={20} color="#FFF" />
+            </TouchableOpacity>
           </View>
           <Text style={styles.userName}>{usuario.nombre || "Usuario"}</Text>
           <Text style={styles.userRole}>
-            {usuario.tipo || "Rol no definido"}
+            {usuario.tipo ? `Cliente ${usuario.tipo}` : "Miembro Diamante"}
           </Text>
+          
+          <View style={styles.membershipBadge}>
+            <Ionicons name="diamond-outline" size={16} color="#D4AF37" />
+            <Text style={styles.membershipText}>Miembro Oro</Text>
+          </View>
         </View>
 
+        {/* Sección de información */}
         <View style={styles.profileContainer}>
           <View style={styles.infoSection}>
-            <Text style={styles.sectionTitle}>Información Personal</Text>
+            <Text style={styles.sectionTitle}>MI CUENTA</Text>
 
             <View style={styles.infoItem}>
-              <MaterialIcons name="person" size={20} color="#4A90E2" />
-              <Text style={styles.infoText}>
-                {usuario.nombre || "No disponible"}
-              </Text>
+              <View style={styles.infoIcon}>
+                <Ionicons name="person-outline" size={20} color="#D4AF37" />
+              </View>
+              <View>
+                <Text style={styles.infoLabel}>Nombre completo</Text>
+                <Text style={styles.infoText}>
+                  {usuario.nombre || "No disponible"}
+                </Text>
+              </View>
             </View>
 
             <View style={styles.infoItem}>
-              <MaterialIcons name="email" size={20} color="#4A90E2" />
-              <Text style={styles.infoText}>
-                {usuario.email || "No disponible"}
-              </Text>
+              <View style={styles.infoIcon}>
+                <MaterialIcons name="email" size={20} color="#D4AF37" />
+              </View>
+              <View>
+                <Text style={styles.infoLabel}>Correo electrónico</Text>
+                <Text style={styles.infoText}>
+                  {usuario.email || "No disponible"}
+                </Text>
+              </View>
             </View>
 
             <View style={styles.infoItem}>
-              <MaterialIcons name="work" size={20} color="#4A90E2" />
-              <Text style={styles.infoText}>
-                {usuario.tipo || "No disponible"}
-              </Text>
+              <View style={styles.infoIcon}>
+                <Feather name="phone" size={20} color="#D4AF37" />
+              </View>
+              <View>
+                <Text style={styles.infoLabel}>Teléfono</Text>
+                <Text style={styles.infoText}>
+                  {usuario.telefono || "No disponible"}
+                </Text>
+              </View>
             </View>
-          </View>
 
-          <View style={styles.buttonGroup}>
-            <BottonComponent
-              title="Editar Perfil"
-              onPress={handleEditProfile}
-              style={styles.editButton}
-              textStyle={styles.buttonText}
-            />
-            <BottonComponent
-              title="Cerrar Sesión"
-              onPress={async () => {
-                await logoutUser();
-              }}
-              style={styles.logoutButton}
-              textStyle={styles.buttonText}
-            />
+            <View style={styles.infoItem}>
+              <View style={styles.infoIcon}>
+                <MaterialIcons name="location-on" size={20} color="#D4AF37" />
+              </View>
+              <View>
+                <Text style={styles.infoLabel}>Dirección</Text>
+                <Text style={styles.infoText}>
+                  {usuario.direccion || "No disponible"}
+                </Text>
+              </View>
+            </View>
           </View>
         </View>
       </View>
@@ -191,122 +175,206 @@ export default function Perfil({ navigation }) {
 const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
+    backgroundColor: "#F9F9F9",
   },
   container: {
     flex: 1,
-    backgroundColor: "#F8F9FA",
+    backgroundColor: "#F9F9F9",
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#F8F9FA",
+    backgroundColor: "#FFF",
   },
   header: {
     alignItems: "center",
-    paddingVertical: 30,
-    backgroundColor: "#4A90E2",
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    paddingVertical: 40,
+    paddingBottom: 60,
+    backgroundColor: "#1A1A2E",
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
     marginBottom: 20,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+    position: 'relative',
   },
   avatarContainer: {
-    position: "relative",
+    position: 'relative',
     marginBottom: 15,
   },
   avatar: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    borderWidth: 3,
-    borderColor: "white",
+    borderWidth: 4,
+    borderColor: "#D4AF37",
+    backgroundColor: '#FFF',
   },
-  avatarOverlay: {
-    position: "absolute",
-    right: 0,
+  editIcon: {
+    position: 'absolute',
     bottom: 0,
-    backgroundColor: "#4A90E2",
+    right: 0,
+    backgroundColor: '#D4AF37',
     borderRadius: 20,
     width: 40,
     height: 40,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     borderWidth: 2,
-    borderColor: "white",
+    borderColor: '#1A1A2E',
   },
   userName: {
     fontSize: 24,
     fontWeight: "600",
     color: "white",
     marginBottom: 5,
+    fontFamily: 'PlayfairDisplay_700Bold',
   },
   userRole: {
     fontSize: 16,
     color: "rgba(255,255,255,0.8)",
     fontWeight: "500",
+    marginBottom: 10,
+  },
+  membershipBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(212, 175, 55, 0.2)',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#D4AF37',
+  },
+  membershipText: {
+    fontSize: 14,
+    color: '#D4AF37',
+    marginLeft: 5,
+    fontWeight: '600',
   },
   profileContainer: {
-    paddingHorizontal: 25,
+    paddingHorizontal: 20,
     marginBottom: 30,
+    marginTop: -30,
   },
   infoSection: {
     backgroundColor: "white",
-    borderRadius: 12,
+    borderRadius: 15,
+    padding: 25,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  actionsSection: {
+    backgroundColor: "white",
+    borderRadius: 15,
     padding: 20,
     marginBottom: 25,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
+    shadowRadius: 10,
+    elevation: 5,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#2C3E50",
-    marginBottom: 15,
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1A1A2E",
+    marginBottom: 20,
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#ECF0F1",
+    borderBottomColor: "#F0F0F0",
+    letterSpacing: 0.5,
   },
   infoItem: {
     flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 15,
+    alignItems: "flex-start",
+    marginBottom: 20,
+  },
+  infoIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(212, 175, 55, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  infoLabel: {
+    fontSize: 12,
+    color: "#888",
+    marginBottom: 3,
   },
   infoText: {
     fontSize: 16,
-    color: "#34495E",
-    marginLeft: 10,
+    color: "#333",
+    fontWeight: '500',
   },
-  buttonGroup: {
-    marginTop: 10,
+  actionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
   },
-  editButton: {
-    backgroundColor: "#4A90E2",
-    borderRadius: 8,
-    paddingVertical: 14,
-    marginBottom: 15,
+  actionIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(212, 175, 55, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  actionText: {
+    fontSize: 16,
+    color: "#333",
+    flex: 1,
+    fontWeight: '500',
   },
   logoutButton: {
-    backgroundColor: "#E74C3C",
-    borderRadius: 8,
-    paddingVertical: 14,
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    padding: 18,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E74C3C',
   },
-  buttonText: {
-    color: "white",
+  logoutButtonText: {
+    color: '#E74C3C',
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
+  },
+  retryButton: {
+    backgroundColor: '#D4AF37',
+    borderRadius: 8,
+    padding: 15,
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  retryButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1A1A2E',
+    textAlign: 'center',
+    marginBottom: 10,
   },
   errorText: {
     fontSize: 16,
-    color: "#E74C3C",
+    color: "#666",
     textAlign: "center",
-    marginVertical: 20,
+    marginHorizontal: 30,
   },
 });
