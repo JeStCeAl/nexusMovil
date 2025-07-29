@@ -3,6 +3,7 @@ import LoginScreen from "../../Screen/Auth/login";
 import RegisterScreen from "../../Screen/Auth/Registrar";
 import cambioContra from "../../Screen/Auth/CambioContra";
 import ResetPasswordScreen from "../../Screen/Auth/NuevaContra";
+import VerifyCodeScreen from "../../Screen/Auth/VerifyCodeScreen";
 
 const Stack = createStackNavigator();
 export default function AuthNavigator() {
@@ -26,6 +27,11 @@ export default function AuthNavigator() {
       <Stack.Screen 
         name="ResetPassword" 
         component={ResetPasswordScreen} 
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="VerifyCode" 
+        component={VerifyCodeScreen} 
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

@@ -16,7 +16,6 @@ import { FontAwesome } from "@expo/vector-icons";
 import { loginUser } from "../../src/Services/AuthService"; // Importa la función de login desde tu servicio
 import { MaterialIcons } from "@expo/vector-icons";
 
-
 const { width, height } = Dimensions.get("window");
 
 const LoginScreen = ({ navigation }) => {
@@ -71,7 +70,10 @@ const LoginScreen = ({ navigation }) => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView
+      contentContainerStyle={styles.scrollContent}
+      style={styles.container}
+    >
       <ImageBackground
         source={require("../../assets/corona.png")}
         style={styles.backgroundImage}
@@ -168,8 +170,11 @@ const LoginScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
+    flex: 1, // Cambia flexGrow por flex aquí
     backgroundColor: "#121212",
+  },
+  scrollContent: {
+    flexGrow: 1, // Añade este nuevo estilo
   },
   backgroundImage: {
     width: "100%",

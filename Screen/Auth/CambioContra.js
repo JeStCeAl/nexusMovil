@@ -7,18 +7,19 @@ import {
   TouchableOpacity, 
   ImageBackground,
   ScrollView,
-  Alert
+  Alert,
+  ActivityIndicator
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FontAwesome } from '@expo/vector-icons';
-import { sendPasswordResetEmail } from "../../src/Services/AuthService"; // Asume que tienes esta función en tu servicio
+import { sendPasswordResetCode } from "../../src/Services/AuthService";
 
 const ForgotPasswordScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleResetPassword = async () => {
+  const handleSendCode = async () => {
     if (!email) {
       setError('Por favor ingresa tu email');
       return;
@@ -33,17 +34,11 @@ const ForgotPasswordScreen = ({ navigation }) => {
     setError('');
     
     try {
-      const result = await sendPasswordResetEmail(email);
+      const result = await sendPasswordResetCode(email);
       if (result.success) {
-        Alert.alert(
-          "Email enviado",
-          "Hemos enviado un enlace para restablecer tu contraseña a tu dirección de email.",
-          [
-            { text: "OK", onPress: () => navigation.goBack() }
-          ]
-        );
+        navigation.navigate('VerifyCode', { email });
       } else {
-        setError(result.message || "Error al enviar el email de recuperación");
+        setError(result.message || "Error al enviar el código de verificación");
       }
     } catch (error) {
       console.error("Error inesperado:", error);
@@ -80,7 +75,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
 
         <View style={styles.form}>
           <Text style={styles.instructions}>
-            Ingresa tu dirección de email y te enviaremos un enlace para restablecer tu contraseña.
+            Ingresa tu dirección de email y te enviaremos un código para restablecer tu contraseña.
           </Text>
           
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
@@ -100,12 +95,14 @@ const ForgotPasswordScreen = ({ navigation }) => {
           
           <TouchableOpacity 
             style={styles.submitButton}
-            onPress={handleResetPassword}
+            onPress={handleSendCode}
             disabled={loading}
           >
-            <Text style={styles.submitButtonText}>
-              {loading ? 'ENVIANDO...' : 'ENVIAR ENLACE'}
-            </Text>
+            {loading ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <Text style={styles.submitButtonText}>ENVIAR CÓDIGO</Text>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -113,6 +110,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
   );
 };
 
+// Mantén los mismos estilos que ya tienes
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
@@ -175,7 +173,7 @@ const styles = StyleSheet.create({
     color: '#ffd700',
     textAlign: 'center',
     flex: 1,
-    marginRight: 40, // Para compensar el botón de retroceso
+    marginRight: 40,
   },
   form: {
     marginTop: 10,

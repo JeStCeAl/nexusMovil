@@ -40,28 +40,7 @@ const ConfiguracionScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Sección de Joyería */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Preferencias de Joyería</Text>
-
-        <TouchableOpacity style={styles.option}>
-          <Ionicons name="diamond-outline" size={24} color="#333" />
-          <Text style={styles.optionText}>Materiales preferidos</Text>
-          <Ionicons name="chevron-forward" size={20} color="#999" />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.option}>
-          <Ionicons name="pricetag-outline" size={24} color="#333" />
-          <Text style={styles.optionText}>Rango de precios</Text>
-          <Ionicons name="chevron-forward" size={20} color="#999" />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.option}>
-          <Ionicons name="heart-outline" size={24} color="#333" />
-          <Text style={styles.optionText}>Diseños favoritos</Text>
-          <Ionicons name="chevron-forward" size={20} color="#999" />
-        </TouchableOpacity>
-      </View>
+      
 
       {/* Sección de Soporte */}
       <View style={styles.section}>
@@ -95,7 +74,7 @@ const ConfiguracionScreen = ({ navigation }) => {
         <Text style={styles.logoutText}>Cerrar sesión</Text>
       </TouchableOpacity>
 
-      <Text style={styles.versionText}>Versión 1.0.0</Text>
+      
     </ScrollView>
   );
 };

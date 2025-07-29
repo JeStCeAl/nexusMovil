@@ -11,6 +11,11 @@ const isValidPassword = (password) => {
   return password.length >= 8;
 };
 
+// Función para validar código (6 dígitos)
+const isValidCode = (code) => {
+  return /^\d{6}$/.test(code);
+};
+
 export const loginUser = async (email, password) => {
   if (!email || !password) {
     return {
@@ -150,40 +155,113 @@ export const registerUser = async (
   }
 };
 
-export const sendPasswordResetEmail = async (email) => {
-  try {
-    const response = await api.post("/forgot-password", { email });
-    return {
-      success: true,
-      message: response.data.message,
-    };
-  } catch (error) {
+// Función para enviar código de recuperación
+export const sendPasswordResetCode = async (email) => {
+  if (!email) {
     return {
       success: false,
-      message: error.response?.data?.message || "Error al enviar el email",
+      error: { message: "El email es requerido" },
+    };
+  }
+
+  if (!isValidEmail(email)) {
+    return {
+      success: false,
+      error: { message: "Por favor ingresa un email válido" },
+    };
+  }
+
+  try {
+    const response = await api.post("/password/email", { email });
+    return {
+      success: true,
+      message: response.data.message || "Código de verificación enviado",
+    };
+  } catch (error) {
+    console.error(
+      "Error al enviar código",
+      error.response ? error.response.data : error.message
+    );
+    return {
+      success: false,
+      message:
+        error.response?.data?.message ||
+        "Error al enviar el código de verificación",
     };
   }
 };
 
-export const resetPassword = async (email, token, password) => {
+export const verifyResetCode = async (email, code) => {
+  // Validación frontend primero
+  if (!/^\d{6}$/.test(code)) {
+    return {
+      success: false,
+      message: 'El código debe contener exactamente 6 dígitos numéricos'
+    };
+  }
+
   try {
-    const response = await api.post("/reset-password", {
+    const response = await api.post('/password/verify', { email, code });
+    return response.data;
+  } catch (error) {
+    console.error("Error verifying code:", error.response?.data || error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Error al verificar el código"
+    };
+  }
+};
+
+// Función para restablecer la contraseña con el código verificado
+export const resetPasswordWithCode = async (email, resetToken, password) => {
+  if (!email || !resetToken || !password) {
+    return {
+      success: false,
+      error: { message: "Todos los campos son requeridos" },
+    };
+  }
+
+  if (!isValidEmail(email)) {
+    return {
+      success: false,
+      error: { message: "Por favor ingresa un email válido" },
+    };
+  }
+
+  if (!isValidPassword(password)) {
+    return {
+      success: false,
+      error: { message: "La contraseña debe tener al menos 8 caracteres" },
+    };
+  }
+
+  try {
+    const response = await api.post("/password/reset", {
       email,
-      token,
+      reset_token: resetToken,
       password,
       password_confirmation: password,
     });
     return {
       success: true,
-      message: response.data.message,
+      message: response.data.message || "Contraseña actualizada correctamente",
     };
   } catch (error) {
+    console.error(
+      "Error al restablecer contraseña",
+      error.response ? error.response.data : error.message
+    );
     return {
       success: false,
       message:
-        error.response?.data?.message || "Error al restablecer contraseña",
+        error.response?.data?.message || "Error al restablecer la contraseña",
     };
   }
+};
+
+// Función para reenviar el código de verificación
+export const resendResetCode = async (email) => {
+  return sendPasswordResetCode(email); // Reutilizamos la misma función
 };
 
 export const editProfile = async (userData) => {
