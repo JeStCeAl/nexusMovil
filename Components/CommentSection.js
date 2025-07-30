@@ -1,24 +1,31 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import api from "../src/Services/conexion"; // ← asegúrate que este es tu Axios instance
 
-export default function CommentSection({ onSubmitComment }) {
+export default function CommentSection({ productoId, onSubmitComment }) {
   const [comment, setComment] = useState("");
   const [rating, setRating] = useState(0);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!comment.trim() || rating === 0) return;
 
-    const newComment = {
-      id: Date.now(),
-      text: comment,
-      rating,
+    const comentarioData = {
+      texto: comment,
+      calificacion: rating,
+      fecha: new Date().toISOString().split("T")[0],
+      producto_id: productoId, // ✅ directo desde props
     };
 
-    onSubmitComment(newComment);
-
-    setComment("");
-    setRating(0);
+    try {
+      const response = await api.post("/comentario", comentarioData);
+      onSubmitComment?.(response.data);
+      setComment("");
+      setRating(0);
+    } catch (error) {
+      console.error("Error al crear comentario:", error.response?.data || error.message);
+      Alert.alert("Error", "No se pudo enviar tu comentario.");
+    }
   };
 
   return (

@@ -7,10 +7,12 @@ import {
   TouchableOpacity, 
   ScrollView,
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
-import { registerUser } from "../../src/Services/AuthService"; // Importa la función de registro desde tu servicio
+import { registerUser } from "../../src/Services/AuthService";
 
 const RegisterScreen = ({ navigation }) => {
   const [nombre, setNombre] = useState('');
@@ -60,7 +62,6 @@ const RegisterScreen = ({ navigation }) => {
           },
         ]);
       } else {
-        // Manejo de errores del backend
         if (result.error?.errors) {
           const backendErrors = {};
           Object.keys(result.error.errors).forEach(key => {
@@ -90,164 +91,176 @@ const RegisterScreen = ({ navigation }) => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.formContainer}>
-        <View style={styles.tabs}>
-          <TouchableOpacity 
-            style={styles.tab}
-            onPress={() => navigation.navigate('Login')}
-          >
-            <Text style={styles.tabText}>INGRESAR</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.tab, styles.activeTab]}
-          >
-            <Text style={styles.tabText}>REGISTRARSE</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.form}>
-          <Text style={styles.formTitle}>Únete a la Élite</Text>
-          
-          {/* Nombre */}
-          <View style={styles.inputContainer}>
-            <FontAwesome name="user" style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Nombre"
-              placeholderTextColor="#c0c0c0"
-              value={nombre}
-              onChangeText={(text) => {
-                setNombre(text);
-                setErrors(prev => ({...prev, nombre: ""}));
-              }}
-              autoCapitalize="words"
-            />
-          </View>
-          {errors.nombre ? <Text style={styles.errorText}>{errors.nombre}</Text> : null}
-
-          {/* Username */}
-          <View style={styles.inputContainer}>
-            <FontAwesome name="user-circle" style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Usuario"
-              placeholderTextColor="#c0c0c0"
-              value={username}
-              onChangeText={(text) => {
-                setUsername(text);
-                setErrors(prev => ({...prev, username: ""}));
-              }}
-              autoCapitalize="none"
-            />
-          </View>
-          {errors.username ? <Text style={styles.errorText}>{errors.username}</Text> : null}
-
-          {/* Email */}
-          <View style={styles.inputContainer}>
-            <FontAwesome name="envelope" style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              placeholderTextColor="#c0c0c0"
-              value={email}
-              onChangeText={(text) => {
-                setEmail(text);
-                setErrors(prev => ({...prev, email: ""}));
-              }}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-          </View>
-          {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
-
-          {/* Teléfono */}
-          <View style={styles.inputContainer}>
-            <FontAwesome name="phone" style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Teléfono"
-              placeholderTextColor="#c0c0c0"
-              value={telefono}
-              onChangeText={(text) => {
-                setTelefono(text);
-                setErrors(prev => ({...prev, telefono: ""}));
-              }}
-              keyboardType="phone-pad"
-            />
-          </View>
-          {errors.telefono ? <Text style={styles.errorText}>{errors.telefono}</Text> : null}
-
-          {/* Dirección */}
-          <View style={styles.inputContainer}>
-            <FontAwesome name="map-marker" style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Dirección"
-              placeholderTextColor="#c0c0c0"
-              value={direccion}
-              onChangeText={(text) => {
-                setDireccion(text);
-                setErrors(prev => ({...prev, direccion: ""}));
-              }}
-            />
-          </View>
-          {errors.direccion ? <Text style={styles.errorText}>{errors.direccion}</Text> : null}
-
-          {/* Contraseña */}
-          <View style={styles.inputContainer}>
-            <FontAwesome name="lock" style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Contraseña"
-              placeholderTextColor="#c0c0c0"
-              value={password}
-              onChangeText={(text) => {
-                setPassword(text);
-                setErrors(prev => ({...prev, password: ""}));
-              }}
-              secureTextEntry={!showPassword}
-            />
-            <TouchableOpacity onPress={toggleShowPassword}>
-              <FontAwesome 
-                name={showPassword ? "eye-slash" : "eye"} 
-                style={styles.passwordIcon} 
-              />
-            </TouchableOpacity>
-          </View>
-          {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
-          
-          {loading ? (
-            <ActivityIndicator size="large" color="#ffd700" style={styles.loader} />
-          ) : (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.formContainer}>
+          <View style={styles.tabs}>
             <TouchableOpacity 
-              style={styles.submitButton}
-              onPress={handleRegister}
-              disabled={loading}
+              style={styles.tab}
+              onPress={() => navigation.navigate('Login')}
             >
-              <Text style={styles.submitButtonText}>
-                REGISTRARSE
-              </Text>
+              <Text style={styles.tabText}>INGRESAR</Text>
             </TouchableOpacity>
-          )}
-          
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>¿Ya tienes una cuenta? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-              <Text style={styles.footerLink}>Ingresa aquí</Text>
+            <TouchableOpacity 
+              style={[styles.tab, styles.activeTab]}
+            >
+              <Text style={styles.tabText}>REGISTRARSE</Text>
             </TouchableOpacity>
           </View>
+
+          <View style={styles.form}>
+            <Text style={styles.formTitle}>Únete a la Élite</Text>
+            
+            {/* Nombre */}
+            <View style={styles.inputContainer}>
+              <FontAwesome name="user" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Nombre"
+                placeholderTextColor="#c0c0c0"
+                value={nombre}
+                onChangeText={(text) => {
+                  setNombre(text);
+                  setErrors(prev => ({...prev, nombre: ""}));
+                }}
+                autoCapitalize="words"
+              />
+            </View>
+            {errors.nombre ? <Text style={styles.errorText}>{errors.nombre}</Text> : null}
+
+            {/* Username */}
+            <View style={styles.inputContainer}>
+              <FontAwesome name="user-circle" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Usuario"
+                placeholderTextColor="#c0c0c0"
+                value={username}
+                onChangeText={(text) => {
+                  setUsername(text);
+                  setErrors(prev => ({...prev, username: ""}));
+                }}
+                autoCapitalize="none"
+              />
+            </View>
+            {errors.username ? <Text style={styles.errorText}>{errors.username}</Text> : null}
+
+            {/* Email */}
+            <View style={styles.inputContainer}>
+              <FontAwesome name="envelope" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Email"
+                placeholderTextColor="#c0c0c0"
+                value={email}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  setErrors(prev => ({...prev, email: ""}));
+                }}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
+            {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
+
+            {/* Teléfono */}
+            <View style={styles.inputContainer}>
+              <FontAwesome name="phone" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Teléfono"
+                placeholderTextColor="#c0c0c0"
+                value={telefono}
+                onChangeText={(text) => {
+                  setTelefono(text);
+                  setErrors(prev => ({...prev, telefono: ""}));
+                }}
+                keyboardType="phone-pad"
+              />
+            </View>
+            {errors.telefono ? <Text style={styles.errorText}>{errors.telefono}</Text> : null}
+
+            {/* Dirección */}
+            <View style={styles.inputContainer}>
+              <FontAwesome name="map-marker" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Dirección"
+                placeholderTextColor="#c0c0c0"
+                value={direccion}
+                onChangeText={(text) => {
+                  setDireccion(text);
+                  setErrors(prev => ({...prev, direccion: ""}));
+                }}
+              />
+            </View>
+            {errors.direccion ? <Text style={styles.errorText}>{errors.direccion}</Text> : null}
+
+            {/* Contraseña */}
+            <View style={styles.inputContainer}>
+              <FontAwesome name="lock" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Contraseña"
+                placeholderTextColor="#c0c0c0"
+                value={password}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  setErrors(prev => ({...prev, password: ""}));
+                }}
+                secureTextEntry={!showPassword}
+              />
+              <TouchableOpacity onPress={toggleShowPassword}>
+                <FontAwesome 
+                  name={showPassword ? "eye-slash" : "eye"} 
+                  style={styles.passwordIcon} 
+                />
+              </TouchableOpacity>
+            </View>
+            {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
+            
+            {loading ? (
+              <ActivityIndicator size="large" color="#ffd700" style={styles.loader} />
+            ) : (
+              <TouchableOpacity 
+                style={styles.submitButton}
+                onPress={handleRegister}
+                disabled={loading}
+              >
+                <Text style={styles.submitButtonText}>
+                  REGISTRARSE
+                </Text>
+              </TouchableOpacity>
+            )}
+            
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>¿Ya tienes una cuenta? </Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                <Text style={styles.footerLink}>Ingresa aquí</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
+    flex: 1,
     backgroundColor: '#121212',
+  },
+  scrollContainer: {
+    flexGrow: 1,
     paddingTop: 40,
+    paddingBottom: 20,
   },
   formContainer: {
     flex: 1,

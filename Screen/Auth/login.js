@@ -10,10 +10,11 @@ import {
   Platform,
   Dimensions,
   Alert,
+  KeyboardAvoidingView
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { FontAwesome } from "@expo/vector-icons";
-import { loginUser } from "../../src/Services/AuthService"; // Importa la función de login desde tu servicio
+import { loginUser } from "../../src/Services/AuthService";
 import { MaterialIcons } from "@expo/vector-icons";
 
 const { width, height } = Dimensions.get("window");
@@ -70,111 +71,117 @@ const LoginScreen = ({ navigation }) => {
   };
 
   return (
-    <ScrollView
-      contentContainerStyle={styles.scrollContent}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
     >
-      <ImageBackground
-        source={require("../../assets/corona.png")}
-        style={styles.backgroundImage}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
       >
-        <LinearGradient
-          colors={["rgba(112, 0, 0, 0.8)", "rgba(0, 0, 0, 0.9)"]}
-          style={styles.overlay}
+        <ImageBackground
+          source={require("../../assets/corona.png")}
+          style={styles.backgroundImage}
         >
-          <View style={styles.content}>
-            <Text style={styles.logoText}>NEXUS ECOMMERCE</Text>
-            <Text style={styles.logoSubtext}>Tesoros dignos de guerreros</Text>
-          </View>
-        </LinearGradient>
-      </ImageBackground>
-
-      <View style={styles.formContainer}>
-        <View style={styles.tabs}>
-          <TouchableOpacity
-            style={[styles.tab, styles.activeTab]}
-            onPress={handleLogin}
+          <LinearGradient
+            colors={["rgba(112, 0, 0, 0.8)", "rgba(0, 0, 0, 0.9)"]}
+            style={styles.overlay}
           >
-            <Text style={styles.tabText}>INGRESAR</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.tab}
-            onPress={() => navigation.navigate("Register")}
-          >
-            <Text style={styles.tabText}>REGISTRARSE</Text>
-          </TouchableOpacity>
-        </View>
+            <View style={styles.content}>
+              <Text style={styles.logoText}>NEXUS ECOMMERCE</Text>
+              <Text style={styles.logoSubtext}>Tesoros dignos para usted</Text>
+            </View>
+          </LinearGradient>
+        </ImageBackground>
 
-        <View style={styles.form}>
-          <Text style={styles.formTitle}>Login</Text>
-
-          <View style={styles.inputContainer}>
-            <FontAwesome name="envelope" style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              placeholderTextColor="#c0c0c0"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-          </View>
-
-          <View style={styles.inputContainer}>
-            <FontAwesome name="lock" style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Contraseña"
-              placeholderTextColor="#c0c0c0"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-            />
-
+        <View style={styles.formContainer}>
+          <View style={styles.tabs}>
             <TouchableOpacity
-              style={styles.passwordToggle}
-              onPress={() => setShowPassword(!showPassword)}
+              style={[styles.tab, styles.activeTab]}
+              onPress={handleLogin}
             >
-              <MaterialIcons
-                name={showPassword ? "visibility" : "visibility-off"}
-                size={20}
-                color="#7f8c8d"
+              <Text style={styles.tabText}>INGRESAR</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.tab}
+              onPress={() => navigation.navigate("Register")}
+            >
+              <Text style={styles.tabText}>REGISTRARSE</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.form}>
+            <Text style={styles.formTitle}>Login</Text>
+
+            <View style={styles.inputContainer}>
+              <FontAwesome name="envelope" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Email"
+                placeholderTextColor="#c0c0c0"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
               />
-            </TouchableOpacity>
-          </View>
+              {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
+            </View>
 
-          <TouchableOpacity
-            style={styles.submitButton}
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            <Text style={styles.submitButtonText}>
-              {loading ? "PROCESANDO..." : "INGRESAR"}
-            </Text>
-          </TouchableOpacity>
+            <View style={styles.inputContainer}>
+              <FontAwesome name="lock" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Contraseña"
+                placeholderTextColor="#c0c0c0"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+              />
+              <TouchableOpacity
+                style={styles.passwordToggle}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <MaterialIcons
+                  name={showPassword ? "visibility" : "visibility-off"}
+                  size={20}
+                  color="#7f8c8d"
+                />
+              </TouchableOpacity>
+              {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
+            </View>
 
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>¿Olvidaste tu contraseña? </Text>
             <TouchableOpacity
-              onPress={() => navigation.navigate("CambioContra")}
+              style={styles.submitButton}
+              onPress={handleLogin}
+              disabled={loading}
             >
-              <Text style={styles.footerLink}>Recupérala aquí</Text>
+              <Text style={styles.submitButtonText}>
+                {loading ? "PROCESANDO..." : "INGRESAR"}
+              </Text>
             </TouchableOpacity>
+
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>¿Olvidaste tu contraseña? </Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate("CambioContra")}
+              >
+                <Text style={styles.footerLink}>Recupérala aquí</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, // Cambia flexGrow por flex aquí
+    flex: 1,
     backgroundColor: "#121212",
   },
   scrollContent: {
-    flexGrow: 1, // Añade este nuevo estilo
+    flexGrow: 1,
   },
   backgroundImage: {
     width: "100%",
@@ -266,9 +273,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: "#ffd700",
   },
-  passwordIcon: {
-    fontSize: 20,
-    color: "#c0c0c0",
+  passwordToggle: {
     marginLeft: 10,
   },
   input: {
@@ -277,6 +282,12 @@ const styles = StyleSheet.create({
     color: "#e5e5e5",
     fontFamily: "Spectral-Regular",
     fontSize: 16,
+  },
+  errorText: {
+    color: "#ff3333",
+    fontSize: 12,
+    marginTop: 5,
+    fontFamily: "Spectral-Regular",
   },
   submitButton: {
     backgroundColor: "#d30000",
@@ -311,33 +322,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#ffd700",
     textDecorationLine: "underline",
-  },
-  socialLogin: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: 18,
-    gap: 12,
-  },
-  socialBtn: {
-    width: 45,
-    height: 45,
-    borderRadius: 22.5,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#2a2a2a",
-  },
-  socialIcon: {
-    fontSize: 22,
-    color: "#e5e5e5",
-  },
-  google: {
-    backgroundColor: "#DB4437",
-  },
-  facebook: {
-    backgroundColor: "#4267B2",
-  },
-  twitter: {
-    backgroundColor: "#1DA1F2",
   },
 });
 

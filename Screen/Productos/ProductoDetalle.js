@@ -10,21 +10,50 @@ import { Ionicons } from "@expo/vector-icons";
 import CommentSection from "../../Components/CommentSection";
 import CommentList from "../../Components/CommentList";
 import { useState, useEffect } from "react";
+import api from "../../src/Services/conexion"; // asegúrate que este path sea correcto
 
 const ProductoDetalle = ({ route, navigation }) => {
   const { producto } = route.params;
 
   const [comments, setComments] = useState([]);
-  const [averageRating, setAverageRating] = useState(producto.rating);
-  const [isAvailable, setIsAvailable] = useState(producto.cantidad >= 1); // Cambiado a >= 1
+  const [averageRating, setAverageRating] = useState(0);
+  const [isAvailable, setIsAvailable] = useState(producto.cantidad >= 1);
 
+  // Fetch de comentarios por producto al cargar
+useEffect(() => {
+  const fetchComments = async () => {
+    try {
+      const response = await api.get("/comentarios", {
+        params: { producto_id: producto.id },
+      });
+      const fetchedComments = response.data;
+      setComments(fetchedComments);
+
+      // Calcular promedio si hay comentarios
+      if (fetchedComments.length > 0) {
+        const total = fetchedComments.reduce((acc, c) => acc + c.calificacion, 0);
+        const avg = total / fetchedComments.length;
+        setAverageRating(avg);
+      } else {
+        setAverageRating(0); // Sin comentarios
+      }
+    } catch (error) {
+      console.error("Error al obtener comentarios:", error.response?.data || error.message);
+    }
+  };
+
+  fetchComments();
+}, [producto.id]);
+
+
+
+  // Cuando se agrega un nuevo comentario
   const handleSubmitComment = (newComment) => {
     const updatedComments = [...comments, newComment];
     setComments(updatedComments);
 
-    const total = updatedComments.reduce((acc, c) => acc + c.rating, 0);
+    const total = updatedComments.reduce((acc, c) => acc + c.calificacion, 0);
     const avg = total / updatedComments.length;
-
     setAverageRating(avg);
 
     navigation.setParams({
@@ -32,9 +61,8 @@ const ProductoDetalle = ({ route, navigation }) => {
     });
   };
 
-  // Actualizamos la disponibilidad cuando cambia la cantidad
   useEffect(() => {
-    setIsAvailable(producto.cantidad >= 1); // Cambiado a >= 1
+    setIsAvailable(producto.cantidad >= 1);
   }, [producto.cantidad]);
 
   return (
@@ -64,12 +92,15 @@ const ProductoDetalle = ({ route, navigation }) => {
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Material</Text>
+        <Text style={styles.sectionTitle}>Info Tienda</Text>
         <Text style={styles.material}>{producto.material}</Text>
+
         <Text style={styles.sectionTitle}>Descripción</Text>
         <Text style={styles.material}>{producto.descripcion}</Text>
+
         <Text style={styles.sectionTitle}>Peso</Text>
         <Text style={styles.material}>{producto.peso} kg</Text>
+
         <Text style={styles.sectionTitle}>Dimensiones</Text>
         <Text style={styles.material}>{producto.dimensiones}</Text>
 
@@ -87,10 +118,7 @@ const ProductoDetalle = ({ route, navigation }) => {
         </Text>
 
         <TouchableOpacity
-          style={[
-            styles.buyButton,
-            !isAvailable && styles.disabledButton,
-          ]}
+          style={[styles.buyButton, !isAvailable && styles.disabledButton]}
           onPress={() =>
             navigation.navigate("carrito", {
               screen: "Carro",
@@ -105,7 +133,11 @@ const ProductoDetalle = ({ route, navigation }) => {
         </TouchableOpacity>
       </View>
 
-      <CommentSection onSubmitComment={handleSubmitComment} />
+      <CommentSection
+        productoId={producto.id}
+        onSubmitComment={handleSubmitComment}
+      />
+
       <CommentList comments={comments} />
     </ScrollView>
   );
@@ -144,11 +176,6 @@ const styles = StyleSheet.create({
   ratingContainer: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  rating: {
-    fontSize: 16,
-    marginLeft: 8,
-    color: "#888",
   },
   sectionTitle: {
     fontSize: 16,

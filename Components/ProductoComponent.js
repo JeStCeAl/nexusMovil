@@ -20,6 +20,7 @@ export default function ProductoComponent({
   showRating = true,
 }) {
   const isAvailable = producto.cantidad >= 1;
+  
 
   return (
     <View style={[styles.card, { width: CARD_WIDTH }]}>
@@ -50,32 +51,21 @@ export default function ProductoComponent({
         </Text>
 
         <Text style={styles.detail} numberOfLines={1} ellipsizeMode="tail">
+          <Text style={styles.detail}>Info Tienda: </Text>
           {producto.material}
         </Text>
+        <Text style={styles.detail} numberOfLines={1} ellipsizeMode="tail">
+          <Text style={styles.detail}>Disponibles: </Text>
+          {producto.cantidad}
+        </Text>
+
 
         <View style={styles.priceAvailabilityContainer}>
           <Text style={styles.price}>${producto.precio}</Text>
           {!isAvailable && <Text style={styles.availabilityText}>Agotado</Text>}
         </View>
 
-        {showRating && (
-          <View style={styles.ratingContainer}>
-            {Array.from({ length: 5 }).map((_, index) => (
-              <Ionicons
-                key={index}
-                name={
-                  index < Math.floor(producto.rating)
-                    ? "star"
-                    : index < producto.rating
-                    ? "star-half"
-                    : "star-outline"
-                }
-                size={14}
-                color="#FFD700"
-              />
-            ))}
-          </View>
-        )}
+       
       </View>
 
       {/* Tocar toda la tarjeta para ver detalles */}

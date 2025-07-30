@@ -1,8 +1,8 @@
-import React from "react";
+
 import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
-export default function CommentList({ comments }) {
+ // Asegúrate que este es tu Axios instance
+export default function CommentList({ comments = [] }) {
   if (!comments.length) {
     return (
       <View style={styles.noComments}>
@@ -20,13 +20,13 @@ export default function CommentList({ comments }) {
             {Array.from({ length: 5 }).map((_, index) => (
               <Ionicons
                 key={index}
-                name={index < comment.rating ? "star" : "star-outline"}
+                name={index < comment.calificacion ? "star" : "star-outline"}
                 size={18}
                 color="#FFD700"
               />
             ))}
           </View>
-          <Text style={styles.commentText}>{comment.text}</Text>
+          <Text style={styles.commentText}>{comment.texto}</Text>
         </View>
       ))}
     </View>
