@@ -26,18 +26,14 @@ const ConfiguracionScreen = ({ navigation }) => {
           <Text style={styles.optionText}>Perfil</Text>
           <Ionicons name="chevron-forward" size={20} color="#999" />
         </TouchableOpacity>
-
+        
         <TouchableOpacity style={styles.option}>
           <Ionicons name="lock-closed-outline" size={24} color="#333" />
           <Text style={styles.optionText}>Cambiar contraseña</Text>
           <Ionicons name="chevron-forward" size={20} color="#999" />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.option}>
-          <Ionicons name="card-outline" size={24} color="#333" />
-          <Text style={styles.optionText}>Métodos de pago</Text>
-          <Ionicons name="chevron-forward" size={20} color="#999" />
-        </TouchableOpacity>
+        
       </View>
 
       
@@ -46,19 +42,22 @@ const ConfiguracionScreen = ({ navigation }) => {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Soporte</Text>
 
-        <TouchableOpacity style={styles.option}>
+        <TouchableOpacity style={styles.option}
+        onPress={() => navigation.navigate("Ayuda", { screen: "Ayuda" })}>
           <Ionicons name="help-circle-outline" size={24} color="#333" />
           <Text style={styles.optionText}>Ayuda</Text>
           <Ionicons name="chevron-forward" size={20} color="#999" />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.option}>
+        <TouchableOpacity style={styles.option}
+        onPress={() => navigation.navigate("Contactanos", { screen: "Contactanos" })}>
           <Ionicons name="mail-outline" size={24} color="#333" />
           <Text style={styles.optionText}>Contáctanos</Text>
           <Ionicons name="chevron-forward" size={20} color="#999" />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.option}>
+        <TouchableOpacity style={styles.option}
+          onPress={() => navigation.navigate("AcercaDE", { screen: "AcercaDE" })}>
           <Ionicons name="information-circle-outline" size={24} color="#333" />
           <Text style={styles.optionText}>Acerca de</Text>
           <Ionicons name="chevron-forward" size={20} color="#999" />

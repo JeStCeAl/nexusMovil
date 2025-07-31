@@ -23,17 +23,29 @@ const Cart = ({ route }) => {
         price: prod.precio,
         image: prod.imagen,
         quantity: 1,
-        inStock: prod.disponible,
+        inStock: prod.cantidad,
+
       };
 
       setCart((prev) => {
         const existingItem = prev.find((item) => item.id === newItem.id);
         if (existingItem) {
+          if (existingItem.quantity + 1 > existingItem.inStock) {
+            alert(
+              `No puedes agregar más de ${existingItem.inStock} unidades de "${existingItem.name}".`
+            );
+            return prev;
+          }
+
           return prev.map((item) =>
             item.id === newItem.id
               ? { ...item, quantity: item.quantity + 1 }
               : item
           );
+        }
+        if (newItem.inStock < 1) {
+          alert(`"${newItem.name}" no está disponible en este momento.`);
+          return prev;
         }
         return [...prev, newItem];
       });
@@ -68,13 +80,24 @@ const Cart = ({ route }) => {
   const total = subtotal + taxes + shipping;
 
   const handleCheckout = () => {
+    // Verifica si algún producto supera el stock
+    const productoExcedido = cart.find((item) => item.quantity > item.inStock);
+
+    if (productoExcedido) {
+      alert(
+        `La cantidad seleccionada de "${productoExcedido.name}" excede el stock disponible (${productoExcedido.inStock}).`
+      );
+      return; // Detiene la navegación
+    }
+
+    // Si todo está bien, navega al método de pago
     navigation.navigate("PaymentMethod", {
       cart,
       subtotal,
       taxes,
       shipping,
       total,
-      onPaymentComplete: () => setCart([]), // Limpia carrito al terminar pago
+      onPaymentComplete: () => setCart([]),
     });
   };
 
@@ -115,9 +138,18 @@ const Cart = ({ route }) => {
                   <TouchableOpacity
                     style={styles.qtyBtn}
                     onPress={() => updateQuantity(item.id, 1)}
+                    disabled={item.quantity >= item.inStock}
                   >
-                    <Text style={styles.qtyBtnText}>+</Text>
+                    <Text
+                      style={[
+                        styles.qtyBtnText,
+                        item.quantity >= item.inStock && { color: "#ccc" },
+                      ]}
+                    >
+                      +
+                    </Text>
                   </TouchableOpacity>
+
                   <TouchableOpacity
                     style={styles.removeBtn}
                     onPress={() => removeItem(item.id)}
@@ -230,7 +262,12 @@ const styles = StyleSheet.create({
   },
   image: { width: 80, height: 80, borderRadius: 8, backgroundColor: "#f1f1f1" },
   name: { fontWeight: "600", fontSize: 16, marginBottom: 4, color: "#2c3e50" },
-  price: { color: "#3498db", fontWeight: "bold", marginBottom: 4, fontSize: 16 },
+  price: {
+    color: "#3498db",
+    fontWeight: "bold",
+    marginBottom: 4,
+    fontSize: 16,
+  },
   stock: { color: "#27ae60", fontSize: 13, fontWeight: "500" },
   noStock: { color: "#e74c3c", fontSize: 13, fontWeight: "500" },
   qtyRow: { flexDirection: "row", alignItems: "center", marginTop: 8 },
@@ -244,15 +281,38 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   qtyBtnText: { fontSize: 18, color: "#3498db", fontWeight: "bold" },
-  qtyValue: { fontSize: 16, fontWeight: "bold", marginHorizontal: 10, color: "#2c3e50" },
+  qtyValue: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginHorizontal: 10,
+    color: "#2c3e50",
+  },
   removeBtn: { marginLeft: "auto", padding: 6 },
   removeBtnText: { color: "#e74c3c", fontSize: 14, fontWeight: "500" },
-  summary: { backgroundColor: "#ecf0f1", borderRadius: 12, padding: 16, marginTop: 20 },
-  summaryRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 8 },
+  summary: {
+    backgroundColor: "#ecf0f1",
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 20,
+  },
+  summaryRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
   summaryLabel: { color: "#7f8c8d", fontSize: 15 },
   summaryValue: { color: "#2c3e50", fontSize: 15, fontWeight: "500" },
-  summaryTotal: { color: "#2c3e50", fontWeight: "bold", fontSize: 18, marginTop: 8 },
-  summaryActions: { flexDirection: "row", justifyContent: "space-between", marginTop: 20 },
+  summaryTotal: {
+    color: "#2c3e50",
+    fontWeight: "bold",
+    fontSize: 18,
+    marginTop: 8,
+  },
+  summaryActions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 20,
+  },
   cancelBtn: {
     borderWidth: 1,
     borderColor: "#e74c3c",
@@ -282,11 +342,33 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  modal: { backgroundColor: "#fff", borderRadius: 12, padding: 24, width: "80%" },
-  modalTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 12, color: "#2c3e50", textAlign: "center" },
-  modalText: { color: "#7f8c8d", marginBottom: 20, textAlign: "center", lineHeight: 22 },
+  modal: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 24,
+    width: "80%",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 12,
+    color: "#2c3e50",
+    textAlign: "center",
+  },
+  modalText: {
+    color: "#7f8c8d",
+    marginBottom: 20,
+    textAlign: "center",
+    lineHeight: 22,
+  },
   modalActions: { flexDirection: "row", justifyContent: "center" },
-  modalBtn: { paddingVertical: 10, paddingHorizontal: 20, borderRadius: 6, marginHorizontal: 10, minWidth: 100 },
+  modalBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 6,
+    marginHorizontal: 10,
+    minWidth: 100,
+  },
   modalBtnDanger: { backgroundColor: "#e74c3c" },
   modalBtnText: { color: "#fff", fontWeight: "bold", textAlign: "center" },
 });

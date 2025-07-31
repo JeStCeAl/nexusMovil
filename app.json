@@ -12,14 +12,16 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "scheme": "nexusapp",  
+    "scheme": "nexusapp",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.tudominio.nexusmovil",
       "infoPlist": {
         "CFBundleURLTypes": [
           {
-            "CFBundleURLSchemes": ["nexusapp"]
+            "CFBundleURLSchemes": [
+              "nexusapp"
+            ]
           }
         ]
       }
@@ -40,7 +42,10 @@
               "pathPrefix": "/reset-password"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ],
       "package": "com.tudominio.nexusmovil"
@@ -49,7 +54,8 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      "expo-mail-composer"
     ]
   }
 }

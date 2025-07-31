@@ -9,7 +9,7 @@ const Stack = createStackNavigator();
 export default function CarroStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Carro" component={Carro} />
+      <Stack.Screen name="Carro" component={Carro}  />
       <Stack.Screen name="PaymentMethod" component={PaymentMethodScreen} />
       
 
