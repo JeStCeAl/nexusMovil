@@ -27,7 +27,8 @@ const ConfiguracionScreen = ({ navigation }) => {
           <Ionicons name="chevron-forward" size={20} color="#999" />
         </TouchableOpacity>
         
-        <TouchableOpacity style={styles.option}>
+        <TouchableOpacity style={styles.option}
+        onPress={() => navigation.navigate("CambiarContraseña", { screen: "CambiarContraseña" })}>
           <Ionicons name="lock-closed-outline" size={24} color="#333" />
           <Text style={styles.optionText}>Cambiar contraseña</Text>
           <Ionicons name="chevron-forward" size={20} color="#999" />

@@ -5,6 +5,7 @@ import AyudaScreen from "../../../Screen/configuracion/AyudaScreen"; // Asegúra
 import ContactanosScreen from "../../../Screen/configuracion/ContactanosScreen";
 
 import AcercaDeScreen from "../../../Screen/configuracion/AcercaDeScreen";
+import CambiarContrasena from "../../../Screen/configuracion/CambiarContraseña";
 
 const Stack = createStackNavigator();
 
@@ -35,6 +36,11 @@ export default function PerfilStack() {
         name="AcercaDE"
         component={AcercaDeScreen} // Reutilizando AyudaScreen para Acerca de
         options={{ title: "Ayuda" }}
+      />
+      <Stack.Screen
+        name="CambiarContraseña"
+        component={CambiarContrasena} // Reutilizando AyudaScreen para Acerca de
+        options={{ title: "Cambio de Contraseña" }}
       />
     </Stack.Navigator>
   );

@@ -15,7 +15,7 @@ export default function PerfilStack() {
       />
 
       <Stack.Screen
-        name="Editar Perfil"
+        name="EditarPerfil"
         component={EditarPerfil}
         options={{ headerShown: false }}
       />

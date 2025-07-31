@@ -53,9 +53,7 @@ export default function Perfil({ navigation }) {
     return unsubscribe;
   }, [navigation]);
 
-  const handleEditProfile = () => {
-    navigation.navigate('EditarPerfil', { usuario });
-  };
+ 
 
   if (loading) {
     return (
@@ -98,9 +96,7 @@ export default function Perfil({ navigation }) {
               source={usuario.foto ? { uri: usuario.foto } : require("../../assets/diamante.png")}
               style={styles.avatar}
             />
-            <TouchableOpacity style={styles.editIcon} onPress={handleEditProfile}>
-              <Feather name="edit-2" size={20} color="#FFF" />
-            </TouchableOpacity>
+            
           </View>
           <Text style={styles.userName}>{usuario.nombre || "Usuario"}</Text>
           <Text style={styles.userRole}>
